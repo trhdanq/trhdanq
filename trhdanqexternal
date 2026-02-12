@@ -1,265 +1,298 @@
---[[
-    trhdanqexternal - HOÀN TOÀN MỚI - 100% CHẠY ĐƯỢC TRÊN XENO
-]]
+--[[ trhdanqexternal - SIMPLE VERSION ]]
 
-local LPlayer = game.Players.LocalPlayer
-local Mouse = LPlayer:GetMouse()
-local UIS = game:GetService("UserInputService")
+local LP = game.Players.LocalPlayer
+local Mouse = LP:GetMouse()
 local RS = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
 
--- ========== BIẾN ==========
-local WalkSpeed = 16
-local JumpPower = 50
-local FlySpeed = 50
-local WalkSpeedOn = false
-local JumpOn = false
-local FlyOn = false
-local NoclipOn = false
-local ESPOn = false
-local FullBrightOn = false
-local NoFogOn = false
+-- === VARIABLES ===
+local speed = 16
+local jump = 50
+local flySpeed = 50
+local speedOn = false
+local jumpOn = false
+local flyOn = false
+local noclipOn = false
 
--- ========== TẠO GUI ==========
+-- === CREATE GUI ===
 local gui = Instance.new("ScreenGui")
 gui.Name = "trhdanqexternal"
 gui.Parent = game.CoreGui
 gui.ResetOnSpawn = false
 
-print("✓ trhdanqexternal: Tạo GUI thành công")
+-- === MAIN BUTTON ===
+local btn = Instance.new("TextButton", gui)
+btn.Name = "MainBtn"
+btn.Size = UDim2.new(0, 120, 0, 40)
+btn.Position = UDim2.new(0, 10, 0, 50)
+btn.Text = "trhdanqexternal"
+btn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+btn.TextColor3 = Color3.new(1, 1, 1)
+btn.Font = Enum.Font.GothamBold
+btn.TextSize = 13
+btn.Draggable = true
 
--- ========== NÚT MỞ/TẮT ==========
-local openBtn = Instance.new("TextButton", gui)
-openBtn.Name = "OpenButton"
-openBtn.Size = UDim2.new(0, 120, 0, 40)
-openBtn.Position = UDim2.new(0, 10, 0, 50)
-openBtn.Text = "trhdanqexternal"
-openBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-openBtn.TextColor3 = Color3.new(1, 1, 1)
-openBtn.Font = Enum.Font.GothamBold
-openBtn.TextSize = 13
-openBtn.Draggable = true
+-- === WINDOW ===
+local window = Instance.new("Frame", gui)
+window.Name = "MainWindow"
+window.Size = UDim2.new(0, 500, 0, 400)
+window.Position = UDim2.new(0.5, -250, 0.5, -200)
+window.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+window.Visible = false
+window.Draggable = true
 
-print("✓ trhdanqexternal: Tạo nút thành công")
-
--- ========== CỬA Sổ CHÍNH ==========
-local mainWindow = Instance.new("Frame", gui)
-mainWindow.Name = "MainWindow"
-mainWindow.Size = UDim2.new(0, 600, 0, 500)
-mainWindow.Position = UDim2.new(0.5, -300, 0.5, -250)
-mainWindow.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-mainWindow.Visible = false
-mainWindow.Draggable = true
-
-print("✓ trhdanqexternal: Tạo cửa sổ thành công")
-
--- Tiêu đề
-local title = Instance.new("TextLabel", mainWindow)
+-- === TITLE ===
+local title = Instance.new("TextLabel", window)
 title.Size = UDim2.new(1, 0, 0, 35)
 title.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
-title.Text = "⚙ trhdanqexternal"
+title.Text = "trhdanqexternal"
 title.TextColor3 = Color3.new(1, 1, 1)
 title.Font = Enum.Font.GothamBold
-title.TextSize = 15
+title.TextSize = 14
 
--- Nút đóng
-local closeBtn = Instance.new("TextButton", title)
-closeBtn.Size = UDim2.new(0, 35, 1, 0)
-closeBtn.Position = UDim2.new(1, -35, 0, 0)
-closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-closeBtn.Text = "X"
-closeBtn.TextColor3 = Color3.new(1, 1, 1)
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextSize = 18
-closeBtn.MouseButton1Click:Connect(function()
-    mainWindow.Visible = false
+-- === CLOSE BUTTON ===
+local close = Instance.new("TextButton", title)
+close.Size = UDim2.new(0, 35, 1, 0)
+close.Position = UDim2.new(1, -35, 0, 0)
+close.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+close.Text = "X"
+close.TextColor3 = Color3.new(1, 1, 1)
+close.Font = Enum.Font.GothamBold
+close.TextSize = 16
+
+close.MouseButton1Click:Connect(function()
+    window.Visible = false
 end)
 
--- Mở/đóng cửa sổ
-openBtn.MouseButton1Click:Connect(function()
-    mainWindow.Visible = not mainWindow.Visible
+btn.MouseButton1Click:Connect(function()
+    window.Visible = not window.Visible
 end)
 
-print("✓ trhdanqexternal: Tạo tiêu đề thành công")
+-- === CONTENT AREA ===
+local content = Instance.new("ScrollingFrame", window)
+content.Size = UDim2.new(1, 0, 1, -35)
+content.Position = UDim2.new(0, 0, 0, 35)
+content.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+content.CanvasSize = UDim2.new(0, 0, 0, 1000)
 
--- ========== HỆ THỐNG TAB ==========
-local tabButtons = Instance.new("Frame", mainWindow)
-tabButtons.Size = UDim2.new(0, 120, 1, -35)
-tabButtons.Position = UDim2.new(0, 0, 0, 35)
-tabButtons.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+-- === WALK SPEED ===
+local label1 = Instance.new("TextLabel", content)
+label1.Size = UDim2.new(1, 0, 0, 20)
+label1.Position = UDim2.new(0, 10, 0, 10)
+label1.BackgroundTransparency = 1
+label1.Text = "Walk Speed: 16"
+label1.TextColor3 = Color3.fromRGB(0, 180, 255)
+label1.Font = Enum.Font.GothamBold
+label1.TextSize = 12
+label1.TextXAlignment = Enum.TextXAlignment.Left
 
-local tabContent = Instance.new("Frame", mainWindow)
-tabContent.Size = UDim2.new(1, -120, 1, -35)
-tabContent.Position = UDim2.new(0, 120, 0, 35)
-tabContent.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+local input1 = Instance.new("TextBox", content)
+input1.Size = UDim2.new(1, -20, 0, 25)
+input1.Position = UDim2.new(0, 10, 0, 35)
+input1.Text = "16"
+input1.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+input1.TextColor3 = Color3.new(1, 1, 1)
+input1.Font = Enum.Font.Gotham
+input1.TextSize = 11
 
-print("✓ trhdanqexternal: Tạo tab system thành công")
+input1.FocusLost:Connect(function()
+    local val = tonumber(input1.Text) or 16
+    speed = math.max(16, math.min(300, val))
+    label1.Text = "Walk Speed: " .. speed
+    input1.Text = tostring(speed)
+end)
 
--- Hàm tạo tab
-local function createTab(tabName)
-    -- Tab page
-    local page = Instance.new("ScrollingFrame", tabContent)
-    page.Name = tabName .. "Page"
-    page.Size = UDim2.new(1, -5, 1, -5)
-    page.Position = UDim2.new(0, 2, 0, 2)
-    page.Visible = false
-    page.CanvasSize = UDim2.new(0, 0, 0, 800)
-    page.BackgroundTransparency = 1
+local toggle1 = Instance.new("TextButton", content)
+toggle1.Size = UDim2.new(1, -20, 0, 30)
+toggle1.Position = UDim2.new(0, 10, 0, 65)
+toggle1.Text = "Walk Speed [OFF]"
+toggle1.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
+toggle1.TextColor3 = Color3.new(1, 1, 1)
+toggle1.Font = Enum.Font.GothamBold
+toggle1.TextSize = 12
 
-    -- Tab button
-    local btn = Instance.new("TextButton", tabButtons)
-    btn.Size = UDim2.new(1, 0, 0, 35)
-    btn.Position = UDim2.new(0, 0, 0, (#tabButtons:GetChildren() - 1) * 35)
-    btn.Text = tabName
-    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    btn.TextColor3 = Color3.new(0.7, 0.7, 0.7)
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 11
+toggle1.MouseButton1Click:Connect(function()
+    speedOn = not speedOn
+    toggle1.Text = "Walk Speed [" .. (speedOn and "ON" or "OFF") .. "]"
+    toggle1.BackgroundColor3 = speedOn and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
+end)
 
-    btn.MouseButton1Click:Connect(function()
-        for _, p in pairs(tabContent:GetChildren()) do
-            p.Visible = false
+-- === JUMP POWER ===
+local label2 = Instance.new("TextLabel", content)
+label2.Size = UDim2.new(1, 0, 0, 20)
+label2.Position = UDim2.new(0, 10, 0, 105)
+label2.BackgroundTransparency = 1
+label2.Text = "Jump Power: 50"
+label2.TextColor3 = Color3.fromRGB(0, 180, 255)
+label2.Font = Enum.Font.GothamBold
+label2.TextSize = 12
+label2.TextXAlignment = Enum.TextXAlignment.Left
+
+local input2 = Instance.new("TextBox", content)
+input2.Size = UDim2.new(1, -20, 0, 25)
+input2.Position = UDim2.new(0, 10, 0, 130)
+input2.Text = "50"
+input2.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+input2.TextColor3 = Color3.new(1, 1, 1)
+input2.Font = Enum.Font.Gotham
+input2.TextSize = 11
+
+input2.FocusLost:Connect(function()
+    local val = tonumber(input2.Text) or 50
+    jump = math.max(50, math.min(300, val))
+    label2.Text = "Jump Power: " .. jump
+    input2.Text = tostring(jump)
+end)
+
+local toggle2 = Instance.new("TextButton", content)
+toggle2.Size = UDim2.new(1, -20, 0, 30)
+toggle2.Position = UDim2.new(0, 10, 0, 160)
+toggle2.Text = "Infinite Jump [OFF]"
+toggle2.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
+toggle2.TextColor3 = Color3.new(1, 1, 1)
+toggle2.Font = Enum.Font.GothamBold
+toggle2.TextSize = 12
+
+toggle2.MouseButton1Click:Connect(function()
+    jumpOn = not jumpOn
+    toggle2.Text = "Infinite Jump [" .. (jumpOn and "ON" or "OFF") .. "]"
+    toggle2.BackgroundColor3 = jumpOn and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
+end)
+
+-- === FLY ===
+local label3 = Instance.new("TextLabel", content)
+label3.Size = UDim2.new(1, 0, 0, 20)
+label3.Position = UDim2.new(0, 10, 0, 200)
+label3.BackgroundTransparency = 1
+label3.Text = "Fly Speed: 50"
+label3.TextColor3 = Color3.fromRGB(0, 180, 255)
+label3.Font = Enum.Font.GothamBold
+label3.TextSize = 12
+label3.TextXAlignment = Enum.TextXAlignment.Left
+
+local input3 = Instance.new("TextBox", content)
+input3.Size = UDim2.new(1, -20, 0, 25)
+input3.Position = UDim2.new(0, 10, 0, 225)
+input3.Text = "50"
+input3.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+input3.TextColor3 = Color3.new(1, 1, 1)
+input3.Font = Enum.Font.Gotham
+input3.TextSize = 11
+
+input3.FocusLost:Connect(function()
+    local val = tonumber(input3.Text) or 50
+    flySpeed = math.max(10, math.min(200, val))
+    label3.Text = "Fly Speed: " .. flySpeed
+    input3.Text = tostring(flySpeed)
+end)
+
+local toggle3 = Instance.new("TextButton", content)
+toggle3.Size = UDim2.new(1, -20, 0, 30)
+toggle3.Position = UDim2.new(0, 10, 0, 255)
+toggle3.Text = "Fly [OFF]"
+toggle3.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
+toggle3.TextColor3 = Color3.new(1, 1, 1)
+toggle3.Font = Enum.Font.GothamBold
+toggle3.TextSize = 12
+
+toggle3.MouseButton1Click:Connect(function()
+    flyOn = not flyOn
+    toggle3.Text = "Fly [" .. (flyOn and "ON" or "OFF") .. "]"
+    toggle3.BackgroundColor3 = flyOn and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
+end)
+
+-- === NOCLIP ===
+local toggle4 = Instance.new("TextButton", content)
+toggle4.Size = UDim2.new(1, -20, 0, 30)
+toggle4.Position = UDim2.new(0, 10, 0, 295)
+toggle4.Text = "Noclip [OFF]"
+toggle4.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
+toggle4.TextColor3 = Color3.new(1, 1, 1)
+toggle4.Font = Enum.Font.GothamBold
+toggle4.TextSize = 12
+
+toggle4.MouseButton1Click:Connect(function()
+    noclipOn = not noclipOn
+    toggle4.Text = "Noclip [" .. (noclipOn and "ON" or "OFF") .. "]"
+    toggle4.BackgroundColor3 = noclipOn and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
+end)
+
+-- === FULL BRIGHT ===
+local toggle5 = Instance.new("TextButton", content)
+toggle5.Size = UDim2.new(1, -20, 0, 30)
+toggle5.Position = UDim2.new(0, 10, 0, 335)
+toggle5.Text = "Full Bright [OFF]"
+toggle5.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
+toggle5.TextColor3 = Color3.new(1, 1, 1)
+toggle5.Font = Enum.Font.GothamBold
+toggle5.TextSize = 12
+
+local brightOn = false
+toggle5.MouseButton1Click:Connect(function()
+    brightOn = not brightOn
+    toggle5.Text = "Full Bright [" .. (brightOn and "ON" or "OFF") .. "]"
+    toggle5.BackgroundColor3 = brightOn and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
+end)
+
+-- === SYSTEMS ===
+
+-- Walk Speed System
+RS.Heartbeat:Connect(function()
+    if speedOn and LP.Character and LP.Character:FindFirstChild("Humanoid") then
+        LP.Character.Humanoid.WalkSpeed = speed
+    end
+end)
+
+-- Jump System
+UIS.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.Space and jumpOn and LP.Character then
+        local humanoid = LP.Character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+            wait(0.01)
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
         end
-        page.Visible = true
+    end
+end)
 
-        for _, b in pairs(tabButtons:GetChildren()) do
-            b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-            b.TextColor3 = Color3.new(0.7, 0.7, 0.7)
+-- Fly System
+RS.RenderStepped:Connect(function()
+    if flyOn and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+        local root = LP.Character.HumanoidRootPart
+        local cam = workspace.CurrentCamera
+        local dir = Vector3.new(0, 0, 0)
+        
+        if UIS:IsKeyDown(Enum.KeyCode.W) then dir = dir + cam.CFrame.LookVector end
+        if UIS:IsKeyDown(Enum.KeyCode.S) then dir = dir - cam.CFrame.LookVector end
+        if UIS:IsKeyDown(Enum.KeyCode.A) then dir = dir - cam.CFrame.RightVector end
+        if UIS:IsKeyDown(Enum.KeyCode.D) then dir = dir + cam.CFrame.RightVector end
+        if UIS:IsKeyDown(Enum.KeyCode.Space) then dir = dir + Vector3.new(0, 1, 0) end
+        if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir = dir - Vector3.new(0, 1, 0) end
+        
+        if dir.Magnitude > 0 then dir = dir.Unit end
+        root.Velocity = dir * flySpeed
+    end
+end)
+
+-- Noclip System
+RS.Stepped:Connect(function()
+    if noclipOn and LP.Character then
+        for _, part in pairs(LP.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
         end
-        btn.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
-        btn.TextColor3 = Color3.new(1, 1, 1)
-    end)
-
-    return page
-end
-
-local movementTab = createTab("Movement")
-local visualsTab = createTab("Visuals")
-local serverTab = createTab("Server")
-local optimizeTab = createTab("Optimize")
-
-movementTab.Visible = true
-tabButtons:FindFirstChild("Movement").BackgroundColor3 = Color3.fromRGB(0, 120, 200)
-tabButtons:FindFirstChild("Movement").TextColor3 = Color3.new(1, 1, 1)
-
-print("✓ trhdanqexternal: Tạo tabs thành công")
-
--- ========== HÀM HELPER ==========
-local function addLabel(parent, text, yPos)
-    local label = Instance.new("TextLabel", parent)
-    label.Size = UDim2.new(1, -10, 0, 20)
-    label.Position = UDim2.new(0, 5, 0, yPos)
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.TextColor3 = Color3.fromRGB(0, 180, 255)
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 12
-    label.TextXAlignment = Enum.TextXAlignment.Left
-end
-
-local function addSlider(parent, name, yPos, min, max, default, callback)
-    local label = Instance.new("TextLabel", parent)
-    label.Size = UDim2.new(0.6, 0, 0, 20)
-    label.Position = UDim2.new(0, 5, 0, yPos)
-    label.BackgroundTransparency = 1
-    label.Text = name .. ": " .. default
-    label.TextColor3 = Color3.new(1, 1, 1)
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 11
-    label.TextXAlignment = Enum.TextXAlignment.Left
-
-    local box = Instance.new("TextBox", parent)
-    box.Size = UDim2.new(0.35, 0, 0, 20)
-    box.Position = UDim2.new(0.6, 0, 0, yPos)
-    box.Text = tostring(default)
-    box.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    box.TextColor3 = Color3.new(1, 1, 1)
-    box.Font = Enum.Font.Gotham
-    box.TextSize = 10
-
-    box.FocusLost:Connect(function()
-        local val = tonumber(box.Text) or default
-        val = math.max(min, math.min(max, val))
-        label.Text = name .. ": " .. val
-        box.Text = tostring(val)
-        callback(val)
-    end)
-end
-
-local function addToggle(parent, name, yPos, callback)
-    local btn = Instance.new("TextButton", parent)
-    btn.Size = UDim2.new(1, -10, 0, 30)
-    btn.Position = UDim2.new(0, 5, 0, yPos)
-    btn.Text = name .. " [OFF]"
-    btn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
-    btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 12
-
-    local state = false
-    btn.MouseButton1Click:Connect(function()
-        state = not state
-        btn.Text = name .. (state and " [ON]" or " [OFF]")
-        btn.BackgroundColor3 = state and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
-        callback(state)
-    end)
-
-    return state
-end
-
-print("✓ trhdanqexternal: Tạo hàm helper thành công")
-
--- ========== MOVEMENT TAB ==========
-addLabel(movementTab, "⚡ WALK SPEED", 10)
-addSlider(movementTab, "Speed", 35, 16, 300, 16, function(v)
-    WalkSpeed = v
-end)
-addToggle(movementTab, "Enable Walk Speed", 60, function(state)
-    WalkSpeedOn = state
+    end
 end)
 
-addLabel(movementTab, "🎯 JUMP", 105)
-addSlider(movementTab, "Jump Power", 130, 50, 300, 50, function(v)
-    JumpPower = v
-end)
-addToggle(movementTab, "Infinite Jump", 155, function(state)
-    JumpOn = state
-end)
-
-addLabel(movementTab, "✈ FLY", 200)
-addToggle(movementTab, "Enable Fly", 225, function(state)
-    FlyOn = state
-end)
-addSlider(movementTab, "Fly Speed", 270, 10, 200, 50, function(v)
-    FlySpeed = v
+-- Full Bright System
+RS.Heartbeat:Connect(function()
+    if brightOn then
+        Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+        Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+    end
 end)
 
-addLabel(movementTab, "👻 NOCLIP", 310)
-addToggle(movementTab, "Enable Noclip", 335, function(state)
-    NoclipOn = state
-end)
-
--- ========== VISUALS TAB ==========
-addLabel(visualsTab, "🔍 ESP", 10)
-addToggle(visualsTab, "Enable ESP", 35, function(state)
-    ESPOn = state
-end)
-
-addLabel(visualsTab, "💡 FULL BRIGHT", 80)
-addToggle(visualsTab, "Enable FullBright", 105, function(state)
-    FullBrightOn = state
-end)
-
-addLabel(visualsTab, "🌫 NO FOG", 150)
-addToggle(visualsTab, "Remove Fog", 175, function(state)
-    NoFogOn = state
-end)
-
--- ========== SERVER TAB ==========
-addLabel(serverTab, "🌐 SERVER", 10)
-local hopBtn = Instance.new("TextButton", serverTab)
-hopBtn.Size = UDim2.new(1, -10, 0, 30)
-hopBtn.Position = UDim2.new(0, 5, 0, 35)
-hopBtn.Text = "Random Server Hop"
-hopBtn.BackgroundColor3 = Color3.fromRGB(100, 150, 200)
-hopBtn.TextColor3_*
+print("✓ trhdanqexternal loaded successfully!")
