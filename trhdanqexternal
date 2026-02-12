@@ -82,36 +82,20 @@ local function AddSlider(parent, text, pos, min, max, default, callback)
     label.Text = text .. ": " .. default
     label.Position = UDim2.new(0, 0, 0, pos)
     label.Size = UDim2.new(1, 0, 0, 20)
-    label.TextColor3 = Color3.new(1, 1, 1)
-    label.BackgroundTransparency = 1
     
     local box = Instance.new("TextBox", parent)
     box.Size = UDim2.new(0.8, 0, 0, 25)
     box.Position = UDim2.new(0.1, 0, 0, pos + 25)
     box.Text = tostring(default)
-    box.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
-    box.TextColor3 = Color3.new(1, 1, 1)
-    
     box.FocusLost:Connect(function()
         local val = tonumber(box.Text) or default
         label.Text = text .. ": " .. val
-        if LPlayer.Character and LPlayer.Character:FindFirstChild("Humanoid") then
-            callback(val)
-        end
+        callback(val)
     end)
 end
 
-AddSlider(Tab1, "WalkSpeed", 10, 16, 500, 16, function(v) 
-    if LPlayer.Character and LPlayer.Character:FindFirstChild("Humanoid") then
-        LPlayer.Character.Humanoid.WalkSpeed = v 
-    end
-end)
-
-AddSlider(Tab1, "JumpPower", 70, 50, 500, 50, function(v) 
-    if LPlayer.Character and LPlayer.Character:FindFirstChild("Humanoid") then
-        LPlayer.Character.Humanoid.JumpPower = v 
-    end
-end)
+AddSlider(Tab1, "WalkSpeed", 10, 16, 500, 16, function(v) LPlayer.Character.Humanoid.WalkSpeed = v end)
+AddSlider(Tab1, "JumpPower", 70, 50, 500, 50, function(v) LPlayer.Character.Humanoid.JumpPower = v end)
 
 -- NOCLIP SIÊU ỔN ĐỊNH
 local noclip = false
@@ -119,14 +103,10 @@ local noclipBtn = Instance.new("TextButton", Tab1)
 noclipBtn.Text = "Noclip: OFF"
 noclipBtn.Position = UDim2.new(0.1, 0, 0, 140)
 noclipBtn.Size = UDim2.new(0.8, 0, 0, 30)
-noclipBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
-noclipBtn.TextColor3 = Color3.new(1, 1, 1)
-
 noclipBtn.MouseButton1Click:Connect(function()
     noclip = not noclip
     noclipBtn.Text = "Noclip: " .. (noclip and "ON" or "OFF")
 end)
-
 game:GetService("RunService").Stepped:Connect(function()
     if noclip and LPlayer.Character then
         for _, v in pairs(LPlayer.Character:GetDescendants()) do
@@ -136,49 +116,84 @@ game:GetService("RunService").Stepped:Connect(function()
 end)
 
 -- --- TAB 2: VISUALS (ESP, Bright, Fog) ---
-local espEnabled = false
-local espBtn = Instance.new("TextButton", Tab2)
-espBtn.Text = "ESP: OFF"
-espBtn.Position = UDim2.new(0.1, 0, 0, 10)
-espBtn.Size = UDim2.new(0.8, 0, 0, 30)
-espBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
-espBtn.TextColor3 = Color3.new(1, 1, 1)
+local function CreateVisualBtn(name, pos, callback)
+    local btn = Instance.new("TextButton", Tab2)
+    btn.Text = name
+    btn.Position = UDim2.new(0.1, 0, 0, pos)
+    btn.Size = UDim2.new(0.8, 0, 0, 30)
+    btn.MouseButton1Click:Connect(callback)
+end
 
-espBtn.MouseButton1Click:Connect(function()
-    espEnabled = not espEnabled
-    espBtn.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
-end)
-
--- --- TAB 3: SERVER ---
-local kickBtn = Instance.new("TextButton", Tab3)
-kickBtn.Text = "Rejoin Game"
-kickBtn.Position = UDim2.new(0.1, 0, 0, 10)
-kickBtn.Size = UDim2.new(0.8, 0, 0, 30)
-kickBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
-kickBtn.TextColor3 = Color3.new(1, 1, 1)
-
-kickBtn.MouseButton1Click:Connect(function()
-    game:GetService("TeleportService"):Teleport(game.PlaceId)
-end)
-
--- --- TAB 4: PERFORMANCE ---
-local fpsBoost = false
-local fpsBtn = Instance.new("TextButton", Tab4)
-fpsBtn.Text = "FPS Boost: OFF"
-fpsBtn.Position = UDim2.new(0.1, 0, 0, 10)
-fpsBtn.Size = UDim2.new(0.8, 0, 0, 30)
-fpsBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
-fpsBtn.TextColor3 = Color3.new(1, 1, 1)
-
-fpsBtn.MouseButton1Click:Connect(function()
-    fpsBoost = not fpsBoost
-    fpsBtn.Text = "FPS Boost: " .. (fpsBoost and "ON" or "OFF")
-    if fpsBoost then
-        game:GetService("Lighting").GlobalShadows = false
-        game:GetService("Lighting").FogEnd = 9999
-    else
-        game:GetService("Lighting").GlobalShadows = true
+CreateVisualBtn("ESP Players", 10, function()
+    for _, p in pairs(game.Players:GetPlayers()) do
+        if p ~= LPlayer and p.Character then
+            local box = Instance.new("BoxHandleAdornment", p.Character)
+            box.Size = Vector3.new(4, 6, 1)
+            box.Adornee = p.Character.UpperTorso or p.Character:FindFirstChild("Torso")
+            box.AlwaysOnTop = true
+            box.ZIndex = 5
+            box.Transparency = 0.5
+            box.Color3 = Color3.new(1, 0, 0)
+        end
     end
 end)
 
-print("trhdanqexternal script loaded successfully!")
+CreateVisualBtn("Full Bright & No Fog", 50, function()
+    game.Lighting.Brightness = 2
+    game.Lighting.ClockTime = 14
+    game.Lighting.FogEnd = 1000000
+    game.Lighting.GlobalShadows = false
+end)
+
+-- --- TAB 3: SERVER (Hop, Rejoin, Anti-AFK) ---
+local function CreateServerBtn(name, pos, callback)
+    local btn = Instance.new("TextButton", Tab3)
+    btn.Text = name
+    btn.Position = UDim2.new(0.1, 0, 0, pos)
+    btn.Size = UDim2.new(0.8, 0, 0, 30)
+    btn.MouseButton1Click:Connect(callback)
+end
+
+-- Anti-AFK (Tự động chạy)
+task.spawn(function()
+    local vu = game:GetService("VirtualUser")
+    LPlayer.Idled:Connect(function()
+        vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+        wait(1)
+        vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    end)
+end)
+
+CreateServerBtn("Rejoin Server", 10, function()
+    game:GetService("TeleportService"):Teleport(game.PlaceId, LPlayer)
+end)
+
+CreateServerBtn("Server Hop (Random)", 50, function()
+    -- Logic Hop Server (Rút gọn)
+    local Http = game:GetService("HttpService")
+    local Api = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Desc&limit=100"
+    local list = Http:JSONDecode(game:HttpGet(Api))
+    for _, s in pairs(list.data) do
+        if s.playing < s.maxPlayers and s.id ~= game.JobId then
+            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, s.id)
+            break
+        end
+    end
+end)
+
+-- --- TAB 4: PERFORMANCE (FPS BOOST MẠNH) ---
+CreateVisualBtn("ULTRA FPS BOOST", 10, function()
+    settings().Rendering.QualityLevel = 1
+    game.Lighting.GlobalShadows = false
+    for _, v in pairs(game:GetDescendants()) do
+        if v:IsA("Part") or v:IsA("MeshPart") then
+            v.Material = Enum.Material.Plastic
+            v.Reflectance = 0
+        elseif v:IsA("Decal") or v:IsA("Texture") then
+            v.Transparency = 1
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
+            v.Enabled = false
+        end
+    end
+    print("trhdanqexternal: Đồ họa đã được tối giản tối đa!")
+end)
