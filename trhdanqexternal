@@ -1,199 +1,131 @@
---[[
-    Script: trhdanqexternal Universal
-    Author: trhdanq
-    Features: Multi-Tab, Speed, Jump, Fly, Noclip, ESP, Server Utilities, FPS Boost
-]]
+local Player = game.Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local Camera = Workspace.CurrentCamera
 
-local LPlayer = game.Players.LocalPlayer
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "trhdanqexternal"
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ResetOnSpawn = false
+local Settings = {
+    WalkSpeed = 50,
+    FlySpeed = 100,
+    InfiniteJump = true,
+    Noclip = false,
+    ESP = false,
+    Fullbright = false,
+    NoFog = false,
+    AntiAFK = true,
+    FPSBoost = false
+}
 
--- THÔNG BÁO KHI CHẠY
-game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "trhdanqexternal",
-    Text = "Script đã kích hoạt thành công!",
-    Duration = 5
-})
+-- Walkspeed
+Player.Character:WaitForChild("Humanoid").WalkSpeed = Settings.WalkSpeed
 
--- 1. NÚT MỞ/TẮT DI CHUYỂN ĐƯỢC
-local ToggleBtn = Instance.new("TextButton", ScreenGui)
-ToggleBtn.Size = UDim2.new(0, 80, 0, 30)
-ToggleBtn.Position = UDim2.new(0, 10, 0, 100)
-ToggleBtn.Text = "TRHDANQ"
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-ToggleBtn.TextColor3 = Color3.new(1, 1, 1)
-ToggleBtn.Draggable = true
-
--- 2. KHUNG CHÍNH (MAIN FRAME)
-local Main = Instance.new("Frame", ScreenGui)
-Main.Size = UDim2.new(0, 450, 0, 300)
-Main.Position = UDim2.new(0.5, -225, 0.5, -150)
-Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-Main.Visible = false
-Main.Draggable = true
-
-ToggleBtn.MouseButton1Click:Connect(function()
-    Main.Visible = not Main.Visible
-end)
-
--- 3. HỆ THỐNG TAB
-local TabContainer = Instance.new("Frame", Main)
-TabContainer.Size = UDim2.new(0, 100, 1, -40)
-TabContainer.Position = UDim2.new(0, 5, 0, 35)
-TabContainer.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-
-local ContentContainer = Instance.new("Frame", Main)
-ContentContainer.Size = UDim2.new(1, -115, 1, -40)
-ContentContainer.Position = UDim2.new(0, 110, 0, 35)
-ContentContainer.BackgroundTransparency = 1
-
-local Tabs = {}
-local function CreateTab(name)
-    local TabPage = Instance.new("ScrollingFrame", ContentContainer)
-    TabPage.Size = UDim2.new(1, 0, 1, 0)
-    TabPage.Visible = false
-    TabPage.BackgroundTransparency = 1
-    TabPage.CanvasSize = UDim2.new(0, 0, 2, 0)
-    
-    local TabBtn = Instance.new("TextButton", TabContainer)
-    TabBtn.Size = UDim2.new(1, 0, 0, 35)
-    TabBtn.Text = name
-    TabBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    TabBtn.TextColor3 = Color3.new(1, 1, 1)
-    
-    TabBtn.MouseButton1Click:Connect(function()
-        for _, v in pairs(ContentContainer:GetChildren()) do v.Visible = false end
-        TabPage.Visible = true
-    end)
-    return TabPage
-end
-
-local Tab1 = CreateTab("Movement")
-local Tab2 = CreateTab("Visuals")
-local Tab3 = CreateTab("Server")
-local Tab4 = CreateTab("Performance")
-Tab1.Visible = true -- Mặc định hiện Tab 1
-
--- --- TAB 1: MOVEMENT (Speed, Jump, Fly, Noclip) ---
-local function AddSlider(parent, text, pos, min, max, default, callback)
-    local label = Instance.new("TextLabel", parent)
-    label.Text = text .. ": " .. default
-    label.Position = UDim2.new(0, 0, 0, pos)
-    label.Size = UDim2.new(1, 0, 0, 20)
-    
-    local box = Instance.new("TextBox", parent)
-    box.Size = UDim2.new(0.8, 0, 0, 25)
-    box.Position = UDim2.new(0.1, 0, 0, pos + 25)
-    box.Text = tostring(default)
-    box.FocusLost:Connect(function()
-        local val = tonumber(box.Text) or default
-        label.Text = text .. ": " .. val
-        callback(val)
+-- Infinite Jump
+if Settings.InfiniteJump then
+    UserInputService.JumpRequest:connect(function()
+        Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
     end)
 end
 
-AddSlider(Tab1, "WalkSpeed", 10, 16, 500, 16, function(v) LPlayer.Character.Humanoid.WalkSpeed = v end)
-AddSlider(Tab1, "JumpPower", 70, 50, 500, 50, function(v) LPlayer.Character.Humanoid.JumpPower = v end)
-
--- NOCLIP SIÊU ỔN ĐỊNH
-local noclip = false
-local noclipBtn = Instance.new("TextButton", Tab1)
-noclipBtn.Text = "Noclip: OFF"
-noclipBtn.Position = UDim2.new(0.1, 0, 0, 140)
-noclipBtn.Size = UDim2.new(0.8, 0, 0, 30)
-noclipBtn.MouseButton1Click:Connect(function()
-    noclip = not noclip
-    noclipBtn.Text = "Noclip: " .. (noclip and "ON" or "OFF")
-end)
-game:GetService("RunService").Stepped:Connect(function()
-    if noclip and LPlayer.Character then
-        for _, v in pairs(LPlayer.Character:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide = false end
+-- Fly
+local flying = false
+local flyConnection
+function toggleFly()
+    flying = not flying
+    if flying then
+        flyConnection = RunService.Heartbeat:Connect(function()
+            local bodyVelocity = Instance.new("BodyVelocity")
+            bodyVelocity.Velocity = Vector3.new(0, Settings.FlySpeed, 0)
+            bodyVelocity.Parent = Player.Character.HumanoidRootPart
+            wait()
+            bodyVelocity:Destroy()
+        end)
+    else
+        if flyConnection then
+            flyConnection:Disconnect()
         end
     end
-end)
-
--- --- TAB 2: VISUALS (ESP, Bright, Fog) ---
-local function CreateVisualBtn(name, pos, callback)
-    local btn = Instance.new("TextButton", Tab2)
-    btn.Text = name
-    btn.Position = UDim2.new(0.1, 0, 0, pos)
-    btn.Size = UDim2.new(0.8, 0, 0, 30)
-    btn.MouseButton1Click:Connect(callback)
 end
 
-CreateVisualBtn("ESP Players", 10, function()
-    for _, p in pairs(game.Players:GetPlayers()) do
-        if p ~= LPlayer and p.Character then
-            local box = Instance.new("BoxHandleAdornment", p.Character)
-            box.Size = Vector3.new(4, 6, 1)
-            box.Adornee = p.Character.UpperTorso or p.Character:FindFirstChild("Torso")
-            box.AlwaysOnTop = true
-            box.ZIndex = 5
-            box.Transparency = 0.5
-            box.Color3 = Color3.new(1, 0, 0)
+UserInputService.InputBegan:connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        if input.KeyCode == Enum.KeyCode.F then
+            toggleFly()
         end
     end
 end)
 
-CreateVisualBtn("Full Bright & No Fog", 50, function()
-    game.Lighting.Brightness = 2
-    game.Lighting.ClockTime = 14
-    game.Lighting.FogEnd = 1000000
-    game.Lighting.GlobalShadows = false
-end)
-
--- --- TAB 3: SERVER (Hop, Rejoin, Anti-AFK) ---
-local function CreateServerBtn(name, pos, callback)
-    local btn = Instance.new("TextButton", Tab3)
-    btn.Text = name
-    btn.Position = UDim2.new(0.1, 0, 0, pos)
-    btn.Size = UDim2.new(0.8, 0, 0, 30)
-    btn.MouseButton1Click:Connect(callback)
+-- Noclip
+function toggleNoclip()
+    Settings.Noclip = not Settings.Noclip
+    if Settings.Noclip then
+        RunService.Stepped:connect(function()
+            for _, part in ipairs(Player.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end)
+    end
 end
 
--- Anti-AFK (Tự động chạy)
-task.spawn(function()
-    local vu = game:GetService("VirtualUser")
-    LPlayer.Idled:Connect(function()
-        vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
-        wait(1)
-        vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
-    end)
-end)
-
-CreateServerBtn("Rejoin Server", 10, function()
-    game:GetService("TeleportService"):Teleport(game.PlaceId, LPlayer)
-end)
-
-CreateServerBtn("Server Hop (Random)", 50, function()
-    -- Logic Hop Server (Rút gọn)
-    local Http = game:GetService("HttpService")
-    local Api = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Desc&limit=100"
-    local list = Http:JSONDecode(game:HttpGet(Api))
-    for _, s in pairs(list.data) do
-        if s.playing < s.maxPlayers and s.id ~= game.JobId then
-            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, s.id)
-            break
-        end
+UserInputService.InputBegan:connect(function(input)
+    if input.KeyCode == Enum.KeyCode.N then
+        toggleNoclip()
     end
 end)
 
--- --- TAB 4: PERFORMANCE (FPS BOOST MẠNH) ---
-CreateVisualBtn("ULTRA FPS BOOST", 10, function()
-    settings().Rendering.QualityLevel = 1
-    game.Lighting.GlobalShadows = false
-    for _, v in pairs(game:GetDescendants()) do
-        if v:IsA("Part") or v:IsA("MeshPart") then
-            v.Material = Enum.Material.Plastic
-            v.Reflectance = 0
-        elseif v:IsA("Decal") or v:IsA("Texture") then
-            v.Transparency = 1
-        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
-            v.Enabled = false
+-- ESP
+function toggleESP()
+    Settings.ESP = not Settings.ESP
+    if Settings.ESP then
+        for _, player in ipairs(game.Players:GetPlayers()) do
+            if player ~= Player then
+                local highlight = Instance.new("Highlight")
+                highlight.Adornee = player.Character
+                highlight.Parent = player.Character
+            end
         end
     end
-    print("trhdanqexternal: Đồ họa đã được tối giản tối đa!")
+end
+
+UserInputService.InputBegan:connect(function(input)
+    if input.KeyCode == Enum.KeyCode.E then
+        toggleESP()
+    end
 end)
+
+-- Fullbright
+if Settings.Fullbright then
+    Lighting.Brightness = 2
+end
+
+-- No Fog
+if Settings.NoFog then
+    Lighting.FogEnd = 99999
+end
+
+-- Server Hop
+function serverHop()
+    local servers = game:GetService("MarketplaceService"):GetProductInfo(107806 C)
+    -- Logic to switch server
+end
+
+UserInputService.InputBegan:connect(function(input)
+    if input.KeyCode == Enum.KeyCode.H then
+        serverHop()
+    end
+end)
+
+-- Anti AFK
+if Settings.AntiAFK then
+    game:GetService("VirtualUser"):Button2Down(0, workspace.CurrentCamera.CFrame)
+    wait(2)
+    game:GetService("VirtualUser"):Button2Up(0, workspace.CurrentCamera.CFrame)
+end
+
+-- FPS Booster
+if Settings.FPSBoost then
+    settings().Rendering.QualityLevel = Enum.QualityLevel.NoShadow
+end
+
+-- Adjust settings via GUI or other controls as necessary.
