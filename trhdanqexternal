@@ -1,21 +1,8 @@
 --[[
-    ╔═════════════════════════════════════════════════════════════════╗
-    ║          trhdanqexternal - ULTIMATE UNIVERSAL SCRIPT           ║
-    ║  Auto-Detect Executor → Load Chức Năng Tương Ứng                ║
-    ║  Works on: Xeno, Krnl, Script-Ware, Synapse X, etc.            ║
-    ║  Version: 3.0 FINAL                                            ║
-    ╚═════════════════════════════════════════════════════════════════╝
+    trhdanqexternal - FINAL STABLE VERSION
+    Bỏ detect, bỏ complexity, chỉ cần chạy được không lỗi
 ]]
 
--- ============= DETECT EXECUTOR & CAPABILITY =============
-local execCapability = "LOW" -- Default
-pcall(function()
-    if syn then execCapability = "SYNAPSE" end
-    if KRNL_LOADED then execCapability = "KRNL" end
-    if scriptware then execCapability = "SCRIPTWARE" end
-end)
-
--- ============= INITIALIZE SERVICES =============
 local LP = game.Players.LocalPlayer
 local Mouse = LP:GetMouse()
 local RS = game:GetService("RunService")
@@ -23,163 +10,247 @@ local UIS = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
 local HTTP = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
-local Workspace = workspace
 
--- ============= CONFIG BASED ON EXECUTOR =============
-local CONFIG = {
-    MAX_ESP = (execCapability == "SYNAPSE" or execCapability == "SCRIPTWARE") and 50 or 20,
-    MAX_RENDER_DISTANCE = (execCapability == "SYNAPSE" or execCapability == "SCRIPTWARE") and 1000 or 500,
-    TAB_SYSTEM = (execCapability == "SYNAPSE" or execCapability == "SCRIPTWARE" or execCapability == "KRNL"),
-    CHAMS = execCapability == "SYNAPSE" or execCapability == "SCRIPTWARE",
-    AIMBOT = execCapability == "SYNAPSE" or execCapability == "SCRIPTWARE",
-}
-
--- ============= GLOBAL VARIABLES =============
-local playerSettings = {
-    walkSpeed = 16,
-    jumpPower = 50,
+-- ============= VARIABLES =============
+local settings = {
+    speed = 16,
+    jump = 50,
     flySpeed = 50,
-    walkSpeedEnabled = false,
-    infiniteJumpEnabled = false,
-    flyEnabled = false,
-    noclipEnabled = false,
-    espEnabled = false,
-    chamsEnabled = false,
-    aimbotEnabled = false,
-    fullBrightEnabled = false,
-    noFogEnabled = false,
-    antiAFKEnabled = false,
-    radarESPEnabled = false,
+    speedOn = false,
+    jumpOn = false,
+    flyOn = false,
+    noclipOn = false,
+    espOn = false,
+    brightOn = false,
+    fogOn = false,
+    afkOn = false,
 }
 
-local systemState = {
-    lastAFKTime = tick(),
-    espInstances = {},
-    chamsInstances = {},
-    aimbotTarget = nil,
-}
+local esp = {}
+local lastAFK = tick()
 
--- ============= GUI SETUP =============
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "trhdanqexternal"
-screenGui.Parent = game.CoreGui
-screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+-- ============= GUI =============
+local gui = Instance.new("ScreenGui")
+gui.Name = "trhdanqexternal"
+gui.Parent = game.CoreGui
+gui.ResetOnSpawn = false
 
--- Print notification
-print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-print("✓ trhdanqexternal v3.0 ULTIMATE")
-print("✓ Executor: " .. execCapability)
-print("✓ Capability: " .. (CONFIG.TAB_SYSTEM and "HIGH" or "LOW"))
-print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+-- Main Button
+local mainBtn = Instance.new("TextButton", gui)
+mainBtn.Size = UDim2.new(0, 120, 0, 40)
+mainBtn.Position = UDim2.new(0, 10, 0, 50)
+mainBtn.Text = "trhdanqexternal"
+mainBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+mainBtn.TextColor3 = Color3.new(1, 1, 1)
+mainBtn.Font = Enum.Font.GothamBold
+mainBtn.TextSize = 13
+mainBtn.Draggable = true
 
--- ============= MAIN BUTTON =============
-local toggleBtn = Instance.new("TextButton", screenGui)
-toggleBtn.Name = "ToggleBtn"
-toggleBtn.Size = UDim2.new(0, 130, 0, 40)
-toggleBtn.Position = UDim2.new(0, 10, 0, 50)
-toggleBtn.Text = "trhdanqexternal"
-toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-toggleBtn.TextColor3 = Color3.new(1, 1, 1)
-toggleBtn.Font = Enum.Font.GothamBold
-toggleBtn.TextSize = 13
-toggleBtn.Draggable = true
-toggleBtn.BorderSizePixel = 0
+-- Window
+local window = Instance.new("Frame", gui)
+window.Size = UDim2.new(0, 500, 0, 700)
+window.Position = UDim2.new(0.5, -250, 0.5, -350)
+window.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+window.Visible = false
+window.Draggable = true
 
--- ============= MAIN WINDOW =============
-local mainWindow = Instance.new("Frame", screenGui)
-mainWindow.Name = "MainWindow"
-mainWindow.Size = UDim2.new(0, 700, 0, 700)
-mainWindow.Position = UDim2.new(0.5, -350, 0.5, -350)
-mainWindow.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-mainWindow.Visible = false
-mainWindow.Draggable = true
-mainWindow.ZIndex = 10
-mainWindow.BorderSizePixel = 2
-mainWindow.BorderColor3 = Color3.fromRGB(0, 150, 255)
-
--- Title Bar
-local titleBar = Instance.new("TextLabel", mainWindow)
-titleBar.Size = UDim2.new(1, 0, 0, 40)
-titleBar.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
-titleBar.Text = "⚙ trhdanqexternal v3.0 | " .. execCapability
-titleBar.TextColor3 = Color3.new(1, 1, 1)
-titleBar.Font = Enum.Font.GothamBold
-titleBar.TextSize = 14
-titleBar.BorderSizePixel = 0
+-- Title
+local title = Instance.new("TextLabel", window)
+title.Size = UDim2.new(1, 0, 0, 35)
+title.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+title.Text = "trhdanqexternal"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 14
 
 -- Close Button
-local closeBtn = Instance.new("TextButton", titleBar)
-closeBtn.Size = UDim2.new(0, 40, 1, 0)
-closeBtn.Position = UDim2.new(1, -40, 0, 0)
+local closeBtn = Instance.new("TextButton", title)
+closeBtn.Size = UDim2.new(0, 35, 1, 0)
+closeBtn.Position = UDim2.new(1, -35, 0, 0)
 closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-closeBtn.Text = "✕"
+closeBtn.Text = "X"
 closeBtn.TextColor3 = Color3.new(1, 1, 1)
 closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextSize = 18
-closeBtn.BorderSizePixel = 0
+closeBtn.TextSize = 16
+
+-- Content
+local content = Instance.new("ScrollingFrame", window)
+content.Size = UDim2.new(1, 0, 1, -35)
+content.Position = UDim2.new(0, 0, 0, 35)
+content.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+content.CanvasSize = UDim2.new(0, 0, 0, 1200)
+
+-- ============= BUTTON TOGGLE =============
+mainBtn.MouseButton1Click:Connect(function()
+    window.Visible = not window.Visible
+end)
 
 closeBtn.MouseButton1Click:Connect(function()
-    mainWindow.Visible = false
+    window.Visible = false
 end)
 
-toggleBtn.MouseButton1Click:Connect(function()
-    mainWindow.Visible = not mainWindow.Visible
+-- ============= HELPER =============
+local yPos = 0
+
+local function addLabel(text)
+    local label = Instance.new("TextLabel", content)
+    label.Size = UDim2.new(1, -10, 0, 20)
+    label.Position = UDim2.new(0, 5, 0, yPos)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(0, 180, 255)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 12
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    yPos = yPos + 25
+end
+
+local function addInput(name, min, max, default, callback)
+    local lbl = Instance.new("TextLabel", content)
+    lbl.Size = UDim2.new(0.65, 0, 0, 20)
+    lbl.Position = UDim2.new(0, 5, 0, yPos)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = name .. ": " .. default
+    lbl.TextColor3 = Color3.new(1, 1, 1)
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextSize = 11
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+
+    local box = Instance.new("TextBox", content)
+    box.Size = UDim2.new(0.3, 0, 0, 20)
+    box.Position = UDim2.new(0.7, 0, 0, yPos)
+    box.Text = tostring(default)
+    box.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    box.TextColor3 = Color3.new(1, 1, 1)
+    box.Font = Enum.Font.Gotham
+    box.TextSize = 10
+
+    box.FocusLost:Connect(function()
+        local val = tonumber(box.Text) or default
+        val = math.max(min, math.min(max, val))
+        lbl.Text = name .. ": " .. val
+        box.Text = tostring(val)
+        callback(val)
+    end)
+
+    yPos = yPos + 25
+end
+
+local function addToggle(name, callback)
+    local btn = Instance.new("TextButton", content)
+    btn.Size = UDim2.new(1, -10, 0, 30)
+    btn.Position = UDim2.new(0, 5, 0, yPos)
+    btn.Text = name .. " [OFF]"
+    btn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 12
+
+    local state = false
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        btn.Text = name .. " [" .. (state and "ON" or "OFF") .. "]"
+        btn.BackgroundColor3 = state and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
+        callback(state)
+    end)
+
+    yPos = yPos + 35
+end
+
+local function addButton(name, callback)
+    local btn = Instance.new("TextButton", content)
+    btn.Size = UDim2.new(1, -10, 0, 30)
+    btn.Position = UDim2.new(0, 5, 0, yPos)
+    btn.Text = name
+    btn.BackgroundColor3 = Color3.fromRGB(100, 150, 200)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 12
+
+    btn.MouseButton1Click:Connect(callback)
+    yPos = yPos + 35
+end
+
+-- ============= BUILD UI =============
+
+addLabel("⚡ WALK SPEED")
+addInput("Speed", 16, 300, 16, function(v) settings.speed = v end)
+addToggle("Enable Walk Speed", function(state) settings.speedOn = state end)
+
+addLabel("🎯 JUMP")
+addInput("Power", 50, 300, 50, function(v) settings.jump = v end)
+addToggle("Infinite Jump", function(state) settings.jumpOn = state end)
+
+addLabel("✈ FLY")
+addToggle("Enable Fly", function(state) settings.flyOn = state end)
+addInput("Fly Speed", 10, 200, 50, function(v) settings.flySpeed = v end)
+
+addLabel("👻 NOCLIP")
+addToggle("Enable Noclip", function(state) settings.noclipOn = state end)
+
+addLabel("💡 VISUALS")
+addToggle("Full Bright", function(state) settings.brightOn = state end)
+addToggle("No Fog", function(state) settings.fogOn = state end)
+addToggle("ESP Players", function(state) settings.espOn = state end)
+
+addLabel("🌐 SERVER")
+addButton("Random Hop", function()
+    pcall(function()
+        local res = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
+        local data = HTTP:JSONDecode(res)
+        if data.data and #data.data > 0 then
+            local srv = data.data[math.random(1, #data.data)]
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, srv.id, LP)
+        end
+    end)
 end)
 
--- ============= TAB SYSTEM (if supported) =============
-local tabContainer, contentArea
-if CONFIG.TAB_SYSTEM then
-    tabContainer = Instance.new("Frame", mainWindow)
-    tabContainer.Size = UDim2.new(0, 150, 1, -40)
-    tabContainer.Position = UDim2.new(0, 0, 0, 40)
-    tabContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    tabContainer.BorderSizePixel = 0
+addButton("Lowest Players", function()
+    pcall(function()
+        local res = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
+        local data = HTTP:JSONDecode(res)
+        if data.data and #data.data > 0 then
+            table.sort(data.data, function(a, b) return a.playing < b.playing end)
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, data.data[1].id, LP)
+        end
+    end)
+end)
 
-    local tabScroll = Instance.new("ScrollingFrame", tabContainer)
-    tabScroll.Size = UDim2.new(1, 0, 1, 0)
-    tabScroll.CanvasSize = UDim2.new(0, 0, 0, 600)
-    tabScroll.BackgroundTransparency = 1
-    tabScroll.BorderSizePixel = 0
-    tabScroll.ScrollBarThickness = 5
+addLabel("🔒 UTILITIES")
+addToggle("Anti-AFK", function(state) settings.afkOn = state end)
 
-    contentArea = Instance.new("Frame", mainWindow)
-    contentArea.Size = UDim2.new(1, -150, 1, -40)
-    contentArea.Position = UDim2.new(0, 150, 0, 40)
-    contentArea.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    contentArea.BorderSizePixel = 0
+addButton("Reset All", function()
+    settings.speedOn = false
+    settings.jumpOn = false
+    settings.flyOn = false
+    settings.noclipOn = false
+    settings.espOn = false
+    settings.brightOn = false
+    settings.fogOn = false
+    settings.afkOn = false
+end)
 
-    local function createTab(tabName)
-        local page = Instance.new("ScrollingFrame", contentArea)
-        page.Name = tabName .. "Tab"
-        page.Size = UDim2.new(1, -10, 1, -10)
-        page.Position = UDim2.new(0, 5, 0, 5)
-        page.Visible = false
-        page.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-        page.CanvasSize = UDim2.new(0, 0, 0, 2000)
-        page.BorderSizePixel = 0
+-- ============= SYSTEMS =============
 
-        local btn = Instance.new("TextButton", tabScroll)
-        btn.Size = UDim2.new(1, -10, 0, 35)
-        btn.Position = UDim2.new(0, 5, 0, (#tabScroll:GetChildren() - 1) * 40)
-        btn.Text = tabName
-        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        btn.TextColor3 = Color3.new(0.7, 0.7, 0.7)
-        btn.Font = Enum.Font.Gotham
-        btn.TextSize = 11
-        btn.BorderSizePixel = 1
-        btn.BorderColor3 = Color3.fromRGB(60, 60, 60)
+-- Walk Speed
+RS.Heartbeat:Connect(function()
+    if settings.speedOn and LP.Character and LP.Character:FindFirstChild("Humanoid") then
+        LP.Character.Humanoid.WalkSpeed = settings.speed
+    end
+end)
 
-        btn.MouseButton1Click:Connect(function()
-            for _, p in pairs(contentArea:GetChildren()) do
-                p.Visible = false
-            end
-            page.Visible = true
+-- Infinite Jump
+UIS.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.Space and settings.jumpOn and LP.Character then
+        local hum = LP.Character:FindFirstChild("Humanoid")
+        if hum then
+            hum:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+            wait(0.01)
+            hum:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+        end
+    end
+end)
 
-            for _, b in pairs(tabScroll:GetChildren()) do
-                b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-                b.TextColor3 = Color3.new(0.7, 0.7, 0.7)
-            end
-            btn.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
-            btn.TextColor3 = Color3.new(1, 1, 1)
-        end)_*
+-- Fly
+RS.RenderSte
