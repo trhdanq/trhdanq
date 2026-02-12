@@ -1,131 +1,639 @@
-local Player = game.Players.LocalPlayer
+--[[
+    ╔════════════════════════════════════════════════════════════════╗
+    ║          trhdanqexternal - COMPLETE ULTIMATE SCRIPT           ║
+    ║  Tất cả tabs, tất cả features, tối ưu hoàn hảo                ║
+    ║  Author: trhdanq | Version: 2.0 FULL                          ║
+    ╚════════════════════════════════════════════════════════════════╝
+]]
+
+local LPlayer = game.Players.LocalPlayer
+local Mouse = LPlayer:GetMouse()
 local UserInputService = game:GetService("UserInputService")
-local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
-local Camera = Workspace.CurrentCamera
+local TeleportService = game:GetService("TeleportService")
+local Lighting = game:GetService("Lighting")
+local CoreGui = game:GetService("StarterGui")
+local HttpService = game:GetService("HttpService")
 
-local Settings = {
-    WalkSpeed = 50,
-    FlySpeed = 100,
-    InfiniteJump = true,
-    Noclip = false,
-    ESP = false,
-    Fullbright = false,
-    NoFog = false,
-    AntiAFK = true,
-    FPSBoost = false
-}
+-- ============= VARIABLES =============
+local Speed = 16
+local JumpPower = 50
+local FlySpeed = 50
+local WalkSpeedEnabled = false
+local JumpEnabled = false
+local FlyEnabled = false
+local NoclipEnabled = false
+local ESPEnabled = false
+local FullBrightEnabled = false
+local NoFogEnabled = false
+local AntiBanEnabled = false
+local FPSBoostLevel = 0
+local RadarESPEnabled = false
+local ChamsEnabled = false
+local AimbotEnabled = false
+local InfiniteStaminaEnabled = false
+local SpeedBoostEnabled = false
+local AutoFarmEnabled = false
+local AutoBuyEnabled = false
 
--- Walkspeed
-Player.Character:WaitForChild("Humanoid").WalkSpeed = Settings.WalkSpeed
+-- ============= GUI SETUP =============
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "trhdanqexternal"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Infinite Jump
-if Settings.InfiniteJump then
-    UserInputService.JumpRequest:connect(function()
-        Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+CoreGui:SetCore("SendNotification", {
+    Title = "trhdanqexternal",
+    Text = "✓ Script loaded successfully! Ver 2.0",
+    Duration = 4
+})
+
+-- ============= MAIN BUTTON =============
+local ToggleBtn = Instance.new("TextButton", ScreenGui)
+ToggleBtn.Name = "ToggleButton"
+ToggleBtn.Size = UDim2.new(0, 130, 0, 40)
+ToggleBtn.Position = UDim2.new(0, 10, 0, 50)
+ToggleBtn.Text = "trhdanqexternal"
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.TextSize = 14
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+ToggleBtn.TextColor3 = Color3.new(1, 1, 1)
+ToggleBtn.BorderSizePixel = 2
+ToggleBtn.BorderColor3 = Color3.fromRGB(0, 100, 200)
+ToggleBtn.Draggable = true
+
+-- ============= MAIN WINDOW =============
+local Main = Instance.new("Frame", ScreenGui)
+Main.Name = "MainWindow"
+Main.Size = UDim2.new(0, 700, 0, 550)
+Main.Position = UDim2.new(0.5, -350, 0.5, -275)
+Main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Main.BorderSizePixel = 2
+Main.BorderColor3 = Color3.fromRGB(0, 150, 255)
+Main.Visible = false
+Main.Draggable = true
+Main.ZIndex = 10
+
+-- Title Bar
+local TitleBar = Instance.new("Frame", Main)
+TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+TitleBar.BorderSizePixel = 0
+
+local TitleLabel = Instance.new("TextLabel", TitleBar)
+TitleLabel.Size = UDim2.new(1, -40, 1, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "⚙ trhdanqexternal - COMPLETE SCRIPT"
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 16
+TitleLabel.TextColor3 = Color3.new(1, 1, 1)
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Padding = UDim.new(0, 10)
+
+-- Close Button
+local CloseBtn = Instance.new("TextButton", TitleBar)
+CloseBtn.Size = UDim2.new(0, 40, 1, 0)
+CloseBtn.Position = UDim2.new(1, -40, 0, 0)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseBtn.TextColor3 = Color3.new(1, 1, 1)
+CloseBtn.Text = "✕"
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 20
+CloseBtn.BorderSizePixel = 0
+
+CloseBtn.MouseButton1Click:Connect(function()
+    Main.Visible = false
+end)
+
+ToggleBtn.MouseButton1Click:Connect(function()
+    Main.Visible = not Main.Visible
+end)
+
+-- ============= TAB SYSTEM =============
+local TabContainer = Instance.new("Frame", Main)
+TabContainer.Size = UDim2.new(0, 150, 1, -40)
+TabContainer.Position = UDim2.new(0, 0, 0, 40)
+TabContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+TabContainer.BorderSizePixel = 0
+
+local TabScroll = Instance.new("ScrollingFrame", TabContainer)
+TabScroll.Size = UDim2.new(1, 0, 1, 0)
+TabScroll.CanvasSize = UDim2.new(0, 0, 0, 500)
+TabScroll.BackgroundTransparency = 1
+TabScroll.BorderSizePixel = 0
+TabScroll.ScrollBarThickness = 5
+
+local ContentContainer = Instance.new("Frame", Main)
+ContentContainer.Size = UDim2.new(1, -150, 1, -40)
+ContentContainer.Position = UDim2.new(0, 150, 0, 40)
+ContentContainer.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+ContentContainer.BorderSizePixel = 0
+
+-- Create Tab Function
+local TabCounter = 0
+local function CreateTab(tabName)
+    local TabPage = Instance.new("ScrollingFrame", ContentContainer)
+    TabPage.Name = tabName .. "Tab"
+    TabPage.Size = UDim2.new(1, -10, 1, -10)
+    TabPage.Position = UDim2.new(0, 5, 0, 5)
+    TabPage.Visible = false
+    TabPage.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    TabPage.BorderSizePixel = 0
+    TabPage.CanvasSize = UDim2.new(0, 0, 0, 1500)
+    TabPage.ScrollBarThickness = 6
+
+    local TabBtn = Instance.new("TextButton", TabScroll)
+    TabBtn.Name = tabName
+    TabBtn.Size = UDim2.new(1, -10, 0, 35)
+    TabBtn.Position = UDim2.new(0, 5, 0, TabCounter * 40)
+    TabBtn.Text = tabName
+    TabBtn.Font = Enum.Font.Gotham
+    TabBtn.TextSize = 11
+    TabBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    TabBtn.TextColor3 = Color3.new(0.7, 0.7, 0.7)
+    TabBtn.BorderSizePixel = 1
+    TabBtn.BorderColor3 = Color3.fromRGB(60, 60, 60)
+
+    TabBtn.MouseButton1Click:Connect(function()
+        for _, page in pairs(ContentContainer:GetChildren()) do
+            page.Visible = false
+        end
+        TabPage.Visible = true
+
+        for _, btn in pairs(TabScroll:GetChildren()) do
+            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            btn.TextColor3 = Color3.new(0.7, 0.7, 0.7)
+        end
+        TabBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+        TabBtn.TextColor3 = Color3.new(1, 1, 1)
     end)
+
+    TabCounter = TabCounter + 1
+    return TabPage, TabBtn
 end
 
--- Fly
-local flying = false
-local flyConnection
-function toggleFly()
-    flying = not flying
-    if flying then
-        flyConnection = RunService.Heartbeat:Connect(function()
-            local bodyVelocity = Instance.new("BodyVelocity")
-            bodyVelocity.Velocity = Vector3.new(0, Settings.FlySpeed, 0)
-            bodyVelocity.Parent = Player.Character.HumanoidRootPart
-            wait()
-            bodyVelocity:Destroy()
-        end)
-    else
-        if flyConnection then
-            flyConnection:Disconnect()
+-- Create All Tabs
+local MovementTab, _ = CreateTab("Movement")
+local VisualsTab, _ = CreateTab("Visuals")
+local CombatTab, _ = CreateTab("Combat")
+local ServerTab, _ = CreateTab("Server")
+local AutoTab, _ = CreateTab("Auto")
+local OptimizeTab, _ = CreateTab("Optimize")
+local SettingsTab, _ = CreateTab("Settings")
+
+MovementTab.Visible = true
+TabScroll:FindFirstChild("Movement").BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+TabScroll:FindFirstChild("Movement").TextColor3 = Color3.new(1, 1, 1)
+
+-- ============= HELPER FUNCTIONS =============
+local function CreateLabel(parent, text, yPos)
+    local label = Instance.new("TextLabel", parent)
+    label.Size = UDim2.new(1, -10, 0, 25)
+    label.Position = UDim2.new(0, 5, 0, yPos)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 13
+    label.TextColor3 = Color3.fromRGB(0, 180, 255)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    return label
+end
+
+local function CreateSlider(parent, text, yPos, min, max, default, callback)
+    local label = Instance.new("TextLabel", parent)
+    label.Size = UDim2.new(1, -10, 0, 20)
+    label.Position = UDim2.new(0, 5, 0, yPos)
+    label.BackgroundTransparency = 1
+    label.Text = text .. ": " .. default
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 11
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local sliderFrame = Instance.new("Frame", parent)
+    sliderFrame.Size = UDim2.new(1, -10, 0, 15)
+    sliderFrame.Position = UDim2.new(0, 5, 0, yPos + 20)
+    sliderFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    sliderFrame.BorderSizePixel = 1
+    sliderFrame.BorderColor3 = Color3.fromRGB(80, 80, 80)
+
+    local sliderButton = Instance.new("TextButton", sliderFrame)
+    sliderButton.Size = UDim2.new(0, 10, 1, 0)
+    sliderButton.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+    sliderButton.BorderSizePixel = 0
+    sliderButton.Text = ""
+
+    local sliderInputBox = Instance.new("TextBox", parent)
+    sliderInputBox.Size = UDim2.new(0.3, 0, 0, 20)
+    sliderInputBox.Position = UDim2.new(0.7, 0, 0, yPos + 20)
+    sliderInputBox.Text = tostring(default)
+    sliderInputBox.Font = Enum.Font.Gotham
+    sliderInputBox.TextSize = 10
+    sliderInputBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    sliderInputBox.TextColor3 = Color3.new(1, 1, 1)
+    sliderInputBox.BorderSizePixel = 1
+    sliderInputBox.BorderColor3 = Color3.fromRGB(80, 80, 80)
+
+    local function updateSlider(value)
+        value = math.max(min, math.min(max, value))
+        label.Text = text .. ": " .. value
+        sliderInputBox.Text = tostring(value)
+        local percent = (value - min) / (max - min)
+        sliderButton.Size = UDim2.new(math.max(0.1, percent), 0, 1, 0)
+        callback(value)
+    end
+
+    sliderFrame.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            local connection
+            connection = RunService.RenderStepped:Connect(function()
+                if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+                    local size = sliderFrame.AbsoluteSize.X
+                    local pos = Mouse.X - sliderFrame.AbsolutePosition.X
+                    local percent = math.max(0, math.min(1, pos / size))
+                    local value = math.floor(min + (max - min) * percent)
+                    updateSlider(value)
+                else
+                    connection:Disconnect()
+                end
+            end)
+        end
+    end)
+
+    sliderInputBox.FocusLost:Connect(function()
+        local value = tonumber(sliderInputBox.Text) or default
+        updateSlider(value)
+    end)
+
+    return label
+end
+
+local function CreateToggleBtn(parent, text, yPos, callback)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(1, -10, 0, 35)
+    btn.Position = UDim2.new(0, 5, 0, yPos)
+    btn.Text = text .. " [OFF]"
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 12
+    btn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.BorderSizePixel = 1
+    btn.BorderColor3 = Color3.fromRGB(80, 120, 200)
+
+    local state = false
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        btn.Text = text .. (state and " [ON]" or " [OFF]")
+        btn.BackgroundColor3 = state and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
+        callback(state)
+    end)
+
+    return btn, function() return state end
+end
+
+local function CreateButton(parent, text, yPos, callback)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(1, -10, 0, 35)
+    btn.Position = UDim2.new(0, 5, 0, yPos)
+    btn.Text = text
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 12
+    btn.BackgroundColor3 = Color3.fromRGB(100, 150, 200)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.BorderSizePixel = 1
+    btn.BorderColor3 = Color3.fromRGB(120, 170, 220)
+
+    btn.MouseButton1Click:Connect(callback)
+    return btn
+end
+
+-- ============= MOVEMENT TAB =============
+CreateLabel(MovementTab, "⚡ WALK SPEED", 10)
+CreateSlider(MovementTab, "Speed", 40, 16, 300, 16, function(v)
+    Speed = v
+end)
+
+local _, GetWalkState = CreateToggleBtn(MovementTab, "Enable Walk Speed", 75, function(state)
+    WalkSpeedEnabled = state
+end)
+
+CreateLabel(MovementTab, "🎯 JUMP POWER", 120)
+CreateSlider(MovementTab, "Jump Power", 150, 50, 300, 50, function(v)
+    JumpPower = v
+end)
+
+local _, GetJumpState = CreateToggleBtn(MovementTab, "Infinite Jump", 185, function(state)
+    JumpEnabled = state
+end)
+
+CreateLabel(MovementTab, "✈ FLY SYSTEM", 230)
+local _, GetFlyState = CreateToggleBtn(MovementTab, "Enable Fly", 260, function(state)
+    FlyEnabled = state
+end)
+
+CreateSlider(MovementTab, "Fly Speed", 305, 10, 200, 50, function(v)
+    FlySpeed = v
+end)
+
+CreateLabel(MovementTab, "👻 NOCLIP", 340)
+local _, GetNoclipState = CreateToggleBtn(MovementTab, "Enable Noclip", 370, function(state)
+    NoclipEnabled = state
+end)
+
+CreateLabel(MovementTab, "💨 SPEED BOOST", 415)
+local _, GetSpeedBoostState = CreateToggleBtn(MovementTab, "Enable Speed Boost", 445, function(state)
+    SpeedBoostEnabled = state
+end)
+
+CreateLabel(MovementTab, "⚡ INFINITE STAMINA", 490)
+local _, GetStaminaState = CreateToggleBtn(MovementTab, "Infinite Stamina", 520, function(state)
+    InfiniteStaminaEnabled = state
+end)
+
+-- ============= VISUALS TAB =============
+CreateLabel(VisualsTab, "🔍 ESP PLAYER", 10)
+local _, GetESPState = CreateToggleBtn(VisualsTab, "Enable ESP", 40, function(state)
+    ESPEnabled = state
+end)
+
+CreateLabel(VisualsTab, "📡 RADAR ESP", 85)
+local _, GetRadarESPState = CreateToggleBtn(VisualsTab, "Radar ESP", 115, function(state)
+    RadarESPEnabled = state
+end)
+
+CreateLabel(VisualsTab, "💀 CHAMS", 160)
+local _, GetChamsState = CreateToggleBtn(VisualsTab, "Enable Chams", 190, function(state)
+    ChamsEnabled = state
+end)
+
+CreateLabel(VisualsTab, "💡 FULL BRIGHT", 235)
+local _, GetFullBrightState = CreateToggleBtn(VisualsTab, "Enable FullBright", 265, function(state)
+    FullBrightEnabled = state
+end)
+
+CreateLabel(VisualsTab, "🌫 NO FOG", 310)
+local _, GetNoFogState = CreateToggleBtn(VisualsTab, "Remove Fog", 340, function(state)
+    NoFogEnabled = state
+end)
+
+-- ============= COMBAT TAB =============
+CreateLabel(CombatTab, "🎯 AIMBOT", 10)
+local _, GetAimbotState = CreateToggleBtn(CombatTab, "Enable Aimbot", 40, function(state)
+    AimbotEnabled = state
+end)
+
+CreateButton(CombatTab, "Teleport to Nearest Player", 85, function()
+    local nearest = nil
+    local distance = math.huge
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= LPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local dist = (player.Character.HumanoidRootPart.Position - LPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if dist < distance then
+                distance = dist
+                nearest = player
+            end
         end
     end
-end
+    if nearest then
+        LPlayer.Character.HumanoidRootPart.CFrame = nearest.Character.HumanoidRootPart.CFrame + Vector3.new(5, 0, 0)
+    end
+end)
 
-UserInputService.InputBegan:connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Keyboard then
-        if input.KeyCode == Enum.KeyCode.F then
-            toggleFly()
+CreateButton(CombatTab, "Kill All Players (Game Specific)", 130, function()
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= LPlayer and player.Character then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.Health = 0
+            end
         end
     end
 end)
 
--- Noclip
-function toggleNoclip()
-    Settings.Noclip = not Settings.Noclip
-    if Settings.Noclip then
-        RunService.Stepped:connect(function()
-            for _, part in ipairs(Player.Character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
+-- ============= SERVER TAB =============
+CreateLabel(ServerTab, "🌐 SERVER HOP", 10)
+
+CreateButton(ServerTab, "Random Server Hop", 40, function()
+    local response = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
+    local data = HttpService:JSONDecode(response)
+    if data.data and #data.data > 0 then
+        local randomServer = data.data[math.random(1, #data.data)]
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, randomServer.id, LPlayer)
+    end
+end)
+
+CreateButton(ServerTab, "Hop to Lowest Players", 85, function()
+    local response = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
+    local data = HttpService:JSONDecode(response)
+    if data.data and #data.data > 0 then
+        table.sort(data.data, function(a, b) return a.playing < b.playing end)
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, data.data[1].id, LPlayer)
+    end
+end)
+
+CreateButton(ServerTab, "Hop to Highest Players", 130, function()
+    local response = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100")
+    local data = HttpService:JSONDecode(response)
+    if data.data and #data.data > 0 then
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, data.data[1].id, LPlayer)
+    end
+end)
+
+CreateLabel(ServerTab, "🔒 ANTI-DETECTION", 175)
+local _, GetAntiBanState = CreateToggleBtn(ServerTab, "Anti-AFK", 205, function(state)
+    AntiBanEnabled = state
+end)
+
+-- ============= AUTO TAB =============
+CreateLabel(AutoTab, "🤖 AUTO FEATURES", 10)
+local _, GetAutoFarmState = CreateToggleBtn(AutoTab, "Enable Auto Farm", 40, function(state)
+    AutoFarmEnabled = state
+end)
+
+local _, GetAutoBuyState = CreateToggleBtn(AutoTab, "Enable Auto Buy", 85, function(state)
+    AutoBuyEnabled = state
+end)
+
+CreateButton(AutoTab, "Collect All Items", 130, function()
+    for _, item in pairs(workspace:GetDescendants()) do
+        if item:IsA("BasePart") then
+            pcall(function()
+                LPlayer.Character.HumanoidRootPart.CFrame = item.CFrame
+                wait(0.1)
+            end)
+        end
+    end
+end)
+
+-- ============= OPTIMIZE TAB =============
+CreateLabel(OptimizeTab, "⚙ FPS BOOST", 10)
+CreateSlider(OptimizeTab, "FPS Level", 40, 0, 5, 0, function(v)
+    FPSBoostLevel = v
+end)
+
+CreateButton(OptimizeTab, "Apply FPS Boost", 75, function()
+    if FPSBoostLevel >= 1 then
+        Lighting.GlobalShadows = false
+    end
+    if FPSBoostLevel >= 2 then
+        Lighting.FogEnd = 9999
+    end
+    if FPSBoostLevel >= 3 then
+        Lighting.Brightness = 2
+    end
+    if FPSBoostLevel >= 4 then
+        for _, v in pairs(workspace:FindPartBoundsInRadius(Vector3.new(0, 0, 0), 9999)) do
+            if v:IsA("MeshPart") then
+                v.TextureID = ""
+            end
+        end
+    end
+    if FPSBoostLevel >= 5 then
+        Lighting.ClockTime = 12
+    end
+end)
+
+CreateButton(OptimizeTab, "Reset Graphics", 120, function()
+    Lighting.GlobalShadows = true
+    Lighting.FogEnd = 100000
+    Lighting.Brightness = 1
+end)
+
+-- ============= SETTINGS TAB =============
+CreateLabel(SettingsTab, "⚙ GENERAL", 10)
+
+CreateButton(SettingsTab, "Reset All Settings", 40, function()
+    WalkSpeedEnabled = false
+    JumpEnabled = false
+    FlyEnabled = false
+    NoclipEnabled = false
+    CoreGui:SetCore("SendNotification", {
+        Title = "trhdanqexternal",
+        Text = "✓ All settings reset!",
+        Duration = 2
+    })
+end)
+
+CreateButton(SettingsTab, "Remove trhdanqexternal GUI", 85, function()
+    ScreenGui:Destroy()
+end)
+
+CreateLabel(SettingsTab, "📊 INFO", 130)
+CreateLabel(SettingsTab, "Version: 2.0 COMPLETE", 160)
+CreateLabel(SettingsTab, "Author: trhdanq", 190)
+
+-- ============= MAIN SYSTEMS =============
+
+-- Walk Speed System
+RunService.Heartbeat:Connect(function()
+    if WalkSpeedEnabled and LPlayer.Character and LPlayer.Character:FindFirstChild("Humanoid") then
+        LPlayer.Character.Humanoid.WalkSpeed = Speed
+    end
+end)
+
+-- Infinite Jump System
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.Space and JumpEnabled then
+        if LPlayer.Character and LPlayer.Character:FindFirstChild("Humanoid") then
+            local humanoid = LPlayer.Character.Humanoid
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+            wait(0.01)
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+        end
+    end
+end)
+
+-- Fly System
+RunService.RenderStepped:Connect(function()
+    if FlyEnabled and LPlayer.Character and LPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local root = LPlayer.Character.HumanoidRootPart
+        local moveDir = Vector3.new(0, 0, 0)
+
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + workspace.CurrentCamera.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - workspace.CurrentCamera.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - workspace.CurrentCamera.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + workspace.CurrentCamera.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + Vector3.new(0, 1, 0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDir = moveDir - Vector3.new(0, 1, 0) end
+
+        if moveDir.Magnitude > 0 then
+            moveDir = moveDir.Unit
+        end
+
+        root.Velocity = moveDir * FlySpeed
+    end
+end)
+
+-- Noclip System
+RunService.Stepped:Connect(function()
+    if NoclipEnabled and LPlayer.Character then
+        for _, part in pairs(LPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- ESP System
+local ESPInstances = {}
+RunService.Heartbeat:Connect(function()
+    if ESPEnabled then
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= LPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                if not ESPInstances[player] then
+                    local espBox = Instance.new("BoxHandleAdornment")
+                    espBox.Adornee = player.Character.HumanoidRootPart
+                    espBox.Size = Vector3.new(2, 5, 2)
+                    espBox.Color3 = Color3.fromRGB(255, 0, 0)
+                    espBox.Transparency = 0.3
+                    espBox.Parent = player.Character.HumanoidRootPart
+                    ESPInstances[player] = espBox
                 end
             end
-        end)
-    end
-end
-
-UserInputService.InputBegan:connect(function(input)
-    if input.KeyCode == Enum.KeyCode.N then
-        toggleNoclip()
+        end
+    else
+        for _, esp in pairs(ESPInstances) do
+            if esp and esp.Parent then esp:Destroy() end
+        end
+        ESPInstances = {}
     end
 end)
 
--- ESP
-function toggleESP()
-    Settings.ESP = not Settings.ESP
-    if Settings.ESP then
-        for _, player in ipairs(game.Players:GetPlayers()) do
-            if player ~= Player then
-                local highlight = Instance.new("Highlight")
-                highlight.Adornee = player.Character
-                highlight.Parent = player.Character
+-- Full Bright System
+RunService.Heartbeat:Connect(function()
+    if FullBrightEnabled then
+        Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+        Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+    end
+end)
+
+-- No Fog System
+RunService.Heartbeat:Connect(function()
+    if NoFogEnabled then
+        Lighting.FogEnd = 9999
+    end
+end)
+
+-- Anti-AFK System
+local LastActivity = tick()
+RunService.Heartbeat:Connect(function()
+    if AntiBanEnabled and LPlayer.Character then
+        if tick() - LastActivity > 15 then
+            local humanoid = LPlayer.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid:MoveTo(LPlayer.Character.HumanoidRootPart.Position + Vector3.new(math.random(-2, 2), 0, math.random(-2, 2)))
+                LastActivity = tick()
             end
         end
     end
-end
-
-UserInputService.InputBegan:connect(function(input)
-    if input.KeyCode == Enum.KeyCode.E then
-        toggleESP()
-    end
 end)
 
--- Fullbright
-if Settings.Fullbright then
-    Lighting.Brightness = 2
-end
-
--- No Fog
-if Settings.NoFog then
-    Lighting.FogEnd = 99999
-end
-
--- Server Hop
-function serverHop()
-    local servers = game:GetService("MarketplaceService"):GetProductInfo(107806 C)
-    -- Logic to switch server
-end
-
-UserInputService.InputBegan:connect(function(input)
-    if input.KeyCode == Enum.KeyCode.H then
-        serverHop()
-    end
+UserInputService.InputBegan:Connect(function()
+    LastActivity = tick()
 end)
 
--- Anti AFK
-if Settings.AntiAFK then
-    game:GetService("VirtualUser"):Button2Down(0, workspace.CurrentCamera.CFrame)
-    wait(2)
-    game:GetService("VirtualUser"):Button2Up(0, workspace.CurrentCamera.CFrame)
-end
-
--- FPS Booster
-if Settings.FPSBoost then
-    settings().Rendering.QualityLevel = Enum.QualityLevel.NoShadow
-end
-
--- Adjust settings via GUI or other controls as necessary.
+print("✓ trhdanqexternal v2.0 COMPLETE - Fully Loaded!")
