@@ -1,0 +1,120 @@
+--[[
+    Script: trhdanqexternal Universal
+    Author: trhdanq
+    Features: Multi-Tab, Speed, Jump, Fly, Noclip, ESP, Server Utilities, FPS Boost
+]]
+
+local LPlayer = game.Players.LocalPlayer
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "trhdanqexternal"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ResetOnSpawn = false
+
+-- THÔNG BÁO KHI CHẠY
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "trhdanqexternal",
+    Text = "Script đã kích hoạt thành công!",
+    Duration = 5
+})
+
+-- 1. NÚT MỞ/TẮT DI CHUYỂN ĐƯỢC
+local ToggleBtn = Instance.new("TextButton", ScreenGui)
+ToggleBtn.Size = UDim2.new(0, 80, 0, 30)
+ToggleBtn.Position = UDim2.new(0, 10, 0, 100)
+ToggleBtn.Text = "TRHDANQ"
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+ToggleBtn.TextColor3 = Color3.new(1, 1, 1)
+ToggleBtn.Draggable = true
+
+-- 2. KHUNG CHÍNH (MAIN FRAME)
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 450, 0, 300)
+Main.Position = UDim2.new(0.5, -225, 0.5, -150)
+Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Main.Visible = false
+Main.Draggable = true
+
+ToggleBtn.MouseButton1Click:Connect(function()
+    Main.Visible = not Main.Visible
+end)
+
+-- 3. HỆ THỐNG TAB
+local TabContainer = Instance.new("Frame", Main)
+TabContainer.Size = UDim2.new(0, 100, 1, -40)
+TabContainer.Position = UDim2.new(0, 5, 0, 35)
+TabContainer.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+
+local ContentContainer = Instance.new("Frame", Main)
+ContentContainer.Size = UDim2.new(1, -115, 1, -40)
+ContentContainer.Position = UDim2.new(0, 110, 0, 35)
+ContentContainer.BackgroundTransparency = 1
+
+local Tabs = {}
+local function CreateTab(name)
+    local TabPage = Instance.new("ScrollingFrame", ContentContainer)
+    TabPage.Size = UDim2.new(1, 0, 1, 0)
+    TabPage.Visible = false
+    TabPage.BackgroundTransparency = 1
+    TabPage.CanvasSize = UDim2.new(0, 0, 2, 0)
+    
+    local TabBtn = Instance.new("TextButton", TabContainer)
+    TabBtn.Size = UDim2.new(1, 0, 0, 35)
+    TabBtn.Text = name
+    TabBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    TabBtn.TextColor3 = Color3.new(1, 1, 1)
+    
+    TabBtn.MouseButton1Click:Connect(function()
+        for _, v in pairs(ContentContainer:GetChildren()) do v.Visible = false end
+        TabPage.Visible = true
+    end)
+    return TabPage
+end
+
+local Tab1 = CreateTab("Movement")
+local Tab2 = CreateTab("Visuals")
+local Tab3 = CreateTab("Server")
+local Tab4 = CreateTab("Performance")
+Tab1.Visible = true -- Mặc định hiện Tab 1
+
+-- --- TAB 1: MOVEMENT (Speed, Jump, Fly, Noclip) ---
+local function AddSlider(parent, text, pos, min, max, default, callback)
+    local label = Instance.new("TextLabel", parent)
+    label.Text = text .. ": " .. default
+    label.Position = UDim2.new(0, 0, 0, pos)
+    label.Size = UDim2.new(1, 0, 0, 20)
+    
+    local box = Instance.new("TextBox", parent)
+    box.Size = UDim2.new(0.8, 0, 0, 25)
+    box.Position = UDim2.new(0.1, 0, 0, pos + 25)
+    box.Text = tostring(default)
+    box.FocusLost:Connect(function()
+        local val = tonumber(box.Text) or default
+        label.Text = text .. ": " .. val
+        callback(val)
+    end)
+end
+
+AddSlider(Tab1, "WalkSpeed", 10, 16, 500, 16, function(v) LPlayer.Character.Humanoid.WalkSpeed = v end)
+AddSlider(Tab1, "JumpPower", 70, 50, 500, 50, function(v) LPlayer.Character.Humanoid.JumpPower = v end)
+
+-- NOCLIP SIÊU ỔN ĐỊNH
+local noclip = false
+local noclipBtn = Instance.new("TextButton", Tab1)
+noclipBtn.Text = "Noclip: OFF"
+noclipBtn.Position = UDim2.new(0.1, 0, 0, 140)
+noclipBtn.Size = UDim2.new(0.8, 0, 0, 30)
+noclipBtn.MouseButton1Click:Connect(function()
+    noclip = not noclip
+    noclipBtn.Text = "Noclip: " .. (noclip and "ON" or "OFF")
+end)
+game:GetService("RunService").Stepped:Connect(function()
+    if noclip and LPlayer.Character then
+        for _, v in pairs(LPlayer.Character:GetDescendants()) do
+            if v:IsA("BasePart") then v.CanCollide = false end
+        end
+    end
+end)
+
+-- --- TAB 2: VISUALS (ESP, Bright, Fog) ---
+local function CreateVisualBtn(name, pos, callback)
+    local
