@@ -82,20 +82,36 @@ local function AddSlider(parent, text, pos, min, max, default, callback)
     label.Text = text .. ": " .. default
     label.Position = UDim2.new(0, 0, 0, pos)
     label.Size = UDim2.new(1, 0, 0, 20)
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.BackgroundTransparency = 1
     
     local box = Instance.new("TextBox", parent)
     box.Size = UDim2.new(0.8, 0, 0, 25)
     box.Position = UDim2.new(0.1, 0, 0, pos + 25)
     box.Text = tostring(default)
+    box.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+    box.TextColor3 = Color3.new(1, 1, 1)
+    
     box.FocusLost:Connect(function()
         local val = tonumber(box.Text) or default
         label.Text = text .. ": " .. val
-        callback(val)
+        if LPlayer.Character and LPlayer.Character:FindFirstChild("Humanoid") then
+            callback(val)
+        end
     end)
 end
 
-AddSlider(Tab1, "WalkSpeed", 10, 16, 500, 16, function(v) LPlayer.Character.Humanoid.WalkSpeed = v end)
-AddSlider(Tab1, "JumpPower", 70, 50, 500, 50, function(v) LPlayer.Character.Humanoid.JumpPower = v end)
+AddSlider(Tab1, "WalkSpeed", 10, 16, 500, 16, function(v) 
+    if LPlayer.Character and LPlayer.Character:FindFirstChild("Humanoid") then
+        LPlayer.Character.Humanoid.WalkSpeed = v 
+    end
+end)
+
+AddSlider(Tab1, "JumpPower", 70, 50, 500, 50, function(v) 
+    if LPlayer.Character and LPlayer.Character:FindFirstChild("Humanoid") then
+        LPlayer.Character.Humanoid.JumpPower = v 
+    end
+end)
 
 -- NOCLIP SIÊU ỔN ĐỊNH
 local noclip = false
@@ -103,10 +119,14 @@ local noclipBtn = Instance.new("TextButton", Tab1)
 noclipBtn.Text = "Noclip: OFF"
 noclipBtn.Position = UDim2.new(0.1, 0, 0, 140)
 noclipBtn.Size = UDim2.new(0.8, 0, 0, 30)
+noclipBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
+noclipBtn.TextColor3 = Color3.new(1, 1, 1)
+
 noclipBtn.MouseButton1Click:Connect(function()
     noclip = not noclip
     noclipBtn.Text = "Noclip: " .. (noclip and "ON" or "OFF")
 end)
+
 game:GetService("RunService").Stepped:Connect(function()
     if noclip and LPlayer.Character then
         for _, v in pairs(LPlayer.Character:GetDescendants()) do
@@ -116,5 +136,49 @@ game:GetService("RunService").Stepped:Connect(function()
 end)
 
 -- --- TAB 2: VISUALS (ESP, Bright, Fog) ---
-local function CreateVisualBtn(name, pos, callback)
-    local
+local espEnabled = false
+local espBtn = Instance.new("TextButton", Tab2)
+espBtn.Text = "ESP: OFF"
+espBtn.Position = UDim2.new(0.1, 0, 0, 10)
+espBtn.Size = UDim2.new(0.8, 0, 0, 30)
+espBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
+espBtn.TextColor3 = Color3.new(1, 1, 1)
+
+espBtn.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    espBtn.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
+end)
+
+-- --- TAB 3: SERVER ---
+local kickBtn = Instance.new("TextButton", Tab3)
+kickBtn.Text = "Rejoin Game"
+kickBtn.Position = UDim2.new(0.1, 0, 0, 10)
+kickBtn.Size = UDim2.new(0.8, 0, 0, 30)
+kickBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+kickBtn.TextColor3 = Color3.new(1, 1, 1)
+
+kickBtn.MouseButton1Click:Connect(function()
+    game:GetService("TeleportService"):Teleport(game.PlaceId)
+end)
+
+-- --- TAB 4: PERFORMANCE ---
+local fpsBoost = false
+local fpsBtn = Instance.new("TextButton", Tab4)
+fpsBtn.Text = "FPS Boost: OFF"
+fpsBtn.Position = UDim2.new(0.1, 0, 0, 10)
+fpsBtn.Size = UDim2.new(0.8, 0, 0, 30)
+fpsBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
+fpsBtn.TextColor3 = Color3.new(1, 1, 1)
+
+fpsBtn.MouseButton1Click:Connect(function()
+    fpsBoost = not fpsBoost
+    fpsBtn.Text = "FPS Boost: " .. (fpsBoost and "ON" or "OFF")
+    if fpsBoost then
+        game:GetService("Lighting").GlobalShadows = false
+        game:GetService("Lighting").FogEnd = 9999
+    else
+        game:GetService("Lighting").GlobalShadows = true
+    end
+end)
+
+print("trhdanqexternal script loaded successfully!")
