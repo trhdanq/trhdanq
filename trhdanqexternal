@@ -1,293 +1,265 @@
 --[[
-    trhdanqexternal - OPTIMIZED FOR XENO EXECUTOR
-    Fix toàn bộ lỗi, chạy mượt trên Xeno
+    trhdanqexternal - HOÀN TOÀN MỚI - 100% CHẠY ĐƯỢC TRÊN XENO
 ]]
 
 local LPlayer = game.Players.LocalPlayer
 local Mouse = LPlayer:GetMouse()
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
-local HttpService = game:GetService("HttpService")
 
--- ============= VARIABLES =============
-local Speed = 16
+-- ========== BIẾN ==========
+local WalkSpeed = 16
 local JumpPower = 50
 local FlySpeed = 50
-local WalkSpeedEnabled = false
-local JumpEnabled = false
-local FlyEnabled = false
-local NoclipEnabled = false
-local ESPEnabled = false
-local FullBrightEnabled = false
-local NoFogEnabled = false
-local AntiBanEnabled = false
+local WalkSpeedOn = false
+local JumpOn = false
+local FlyOn = false
+local NoclipOn = false
+local ESPOn = false
+local FullBrightOn = false
+local NoFogOn = false
 
--- ============= GUI SETUP (XENO OPTIMIZED) =============
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "trhdanqexternal"
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ResetOnSpawn = false
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+-- ========== TẠO GUI ==========
+local gui = Instance.new("ScreenGui")
+gui.Name = "trhdanqexternal"
+gui.Parent = game.CoreGui
+gui.ResetOnSpawn = false
 
--- ============= MAIN BUTTON =============
-local ToggleBtn = Instance.new("TextButton", ScreenGui)
-ToggleBtn.Name = "ToggleButton"
-ToggleBtn.Size = UDim2.new(0, 130, 0, 40)
-ToggleBtn.Position = UDim2.new(0, 10, 0, 50)
-ToggleBtn.Text = "trhdanqexternal"
-ToggleBtn.Font = Enum.Font.GothamBold
-ToggleBtn.TextSize = 14
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-ToggleBtn.TextColor3 = Color3.new(1, 1, 1)
-ToggleBtn.BorderSizePixel = 2
-ToggleBtn.BorderColor3 = Color3.fromRGB(0, 100, 200)
-ToggleBtn.Draggable = true
+print("✓ trhdanqexternal: Tạo GUI thành công")
 
--- ============= MAIN WINDOW =============
-local Main = Instance.new("Frame", ScreenGui)
-Main.Name = "MainWindow"
-Main.Size = UDim2.new(0, 700, 0, 550)
-Main.Position = UDim2.new(0.5, -350, 0.5, -275)
-Main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-Main.BorderSizePixel = 2
-Main.BorderColor3 = Color3.fromRGB(0, 150, 255)
-Main.Visible = false
-Main.Draggable = true
-Main.ZIndex = 10
+-- ========== NÚT MỞ/TẮT ==========
+local openBtn = Instance.new("TextButton", gui)
+openBtn.Name = "OpenButton"
+openBtn.Size = UDim2.new(0, 120, 0, 40)
+openBtn.Position = UDim2.new(0, 10, 0, 50)
+openBtn.Text = "trhdanqexternal"
+openBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+openBtn.TextColor3 = Color3.new(1, 1, 1)
+openBtn.Font = Enum.Font.GothamBold
+openBtn.TextSize = 13
+openBtn.Draggable = true
 
--- Title Bar
-local TitleBar = Instance.new("Frame", Main)
-TitleBar.Size = UDim2.new(1, 0, 0, 40)
-TitleBar.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
-TitleBar.BorderSizePixel = 0
+print("✓ trhdanqexternal: Tạo nút thành công")
 
-local TitleLabel = Instance.new("TextLabel", TitleBar)
-TitleLabel.Size = UDim2.new(1, -40, 1, 0)
-TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "⚙ trhdanqexternal"
-TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.TextSize = 16
-TitleLabel.TextColor3 = Color3.new(1, 1, 1)
-TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+-- ========== CỬA Sổ CHÍNH ==========
+local mainWindow = Instance.new("Frame", gui)
+mainWindow.Name = "MainWindow"
+mainWindow.Size = UDim2.new(0, 600, 0, 500)
+mainWindow.Position = UDim2.new(0.5, -300, 0.5, -250)
+mainWindow.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainWindow.Visible = false
+mainWindow.Draggable = true
 
--- Close Button
-local CloseBtn = Instance.new("TextButton", TitleBar)
-CloseBtn.Size = UDim2.new(0, 40, 1, 0)
-CloseBtn.Position = UDim2.new(1, -40, 0, 0)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-CloseBtn.TextColor3 = Color3.new(1, 1, 1)
-CloseBtn.Text = "X"
-CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.TextSize = 20
-CloseBtn.BorderSizePixel = 0
+print("✓ trhdanqexternal: Tạo cửa sổ thành công")
 
-CloseBtn.MouseButton1Click:Connect(function()
-    Main.Visible = false
+-- Tiêu đề
+local title = Instance.new("TextLabel", mainWindow)
+title.Size = UDim2.new(1, 0, 0, 35)
+title.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+title.Text = "⚙ trhdanqexternal"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 15
+
+-- Nút đóng
+local closeBtn = Instance.new("TextButton", title)
+closeBtn.Size = UDim2.new(0, 35, 1, 0)
+closeBtn.Position = UDim2.new(1, -35, 0, 0)
+closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.new(1, 1, 1)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 18
+closeBtn.MouseButton1Click:Connect(function()
+    mainWindow.Visible = false
 end)
 
-ToggleBtn.MouseButton1Click:Connect(function()
-    Main.Visible = not Main.Visible
+-- Mở/đóng cửa sổ
+openBtn.MouseButton1Click:Connect(function()
+    mainWindow.Visible = not mainWindow.Visible
 end)
 
--- ============= TAB SYSTEM =============
-local TabContainer = Instance.new("Frame", Main)
-TabContainer.Size = UDim2.new(0, 150, 1, -40)
-TabContainer.Position = UDim2.new(0, 0, 0, 40)
-TabContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-TabContainer.BorderSizePixel = 0
+print("✓ trhdanqexternal: Tạo tiêu đề thành công")
 
-local TabScroll = Instance.new("ScrollingFrame", TabContainer)
-TabScroll.Size = UDim2.new(1, 0, 1, 0)
-TabScroll.CanvasSize = UDim2.new(0, 0, 0, 500)
-TabScroll.BackgroundTransparency = 1
-TabScroll.BorderSizePixel = 0
-TabScroll.ScrollBarThickness = 5
+-- ========== HỆ THỐNG TAB ==========
+local tabButtons = Instance.new("Frame", mainWindow)
+tabButtons.Size = UDim2.new(0, 120, 1, -35)
+tabButtons.Position = UDim2.new(0, 0, 0, 35)
+tabButtons.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 
-local ContentContainer = Instance.new("Frame", Main)
-ContentContainer.Size = UDim2.new(1, -150, 1, -40)
-ContentContainer.Position = UDim2.new(0, 150, 0, 40)
-ContentContainer.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-ContentContainer.BorderSizePixel = 0
+local tabContent = Instance.new("Frame", mainWindow)
+tabContent.Size = UDim2.new(1, -120, 1, -35)
+tabContent.Position = UDim2.new(0, 120, 0, 35)
+tabContent.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 
--- Create Tab Function
-local TabCounter = 0
-local function CreateTab(tabName)
-    local TabPage = Instance.new("ScrollingFrame", ContentContainer)
-    TabPage.Name = tabName .. "Tab"
-    TabPage.Size = UDim2.new(1, -10, 1, -10)
-    TabPage.Position = UDim2.new(0, 5, 0, 5)
-    TabPage.Visible = false
-    TabPage.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    TabPage.BorderSizePixel = 0
-    TabPage.CanvasSize = UDim2.new(0, 0, 0, 1500)
-    TabPage.ScrollBarThickness = 6
+print("✓ trhdanqexternal: Tạo tab system thành công")
 
-    local TabBtn = Instance.new("TextButton", TabScroll)
-    TabBtn.Name = tabName
-    TabBtn.Size = UDim2.new(1, -10, 0, 35)
-    TabBtn.Position = UDim2.new(0, 5, 0, TabCounter * 40)
-    TabBtn.Text = tabName
-    TabBtn.Font = Enum.Font.Gotham
-    TabBtn.TextSize = 11
-    TabBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    TabBtn.TextColor3 = Color3.new(0.7, 0.7, 0.7)
-    TabBtn.BorderSizePixel = 1
-    TabBtn.BorderColor3 = Color3.fromRGB(60, 60, 60)
+-- Hàm tạo tab
+local function createTab(tabName)
+    -- Tab page
+    local page = Instance.new("ScrollingFrame", tabContent)
+    page.Name = tabName .. "Page"
+    page.Size = UDim2.new(1, -5, 1, -5)
+    page.Position = UDim2.new(0, 2, 0, 2)
+    page.Visible = false
+    page.CanvasSize = UDim2.new(0, 0, 0, 800)
+    page.BackgroundTransparency = 1
 
-    TabBtn.MouseButton1Click:Connect(function()
-        for _, page in pairs(ContentContainer:GetChildren()) do
-            page.Visible = false
+    -- Tab button
+    local btn = Instance.new("TextButton", tabButtons)
+    btn.Size = UDim2.new(1, 0, 0, 35)
+    btn.Position = UDim2.new(0, 0, 0, (#tabButtons:GetChildren() - 1) * 35)
+    btn.Text = tabName
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    btn.TextColor3 = Color3.new(0.7, 0.7, 0.7)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 11
+
+    btn.MouseButton1Click:Connect(function()
+        for _, p in pairs(tabContent:GetChildren()) do
+            p.Visible = false
         end
-        TabPage.Visible = true
+        page.Visible = true
 
-        for _, btn in pairs(TabScroll:GetChildren()) do
-            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-            btn.TextColor3 = Color3.new(0.7, 0.7, 0.7)
+        for _, b in pairs(tabButtons:GetChildren()) do
+            b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            b.TextColor3 = Color3.new(0.7, 0.7, 0.7)
         end
-        TabBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
-        TabBtn.TextColor3 = Color3.new(1, 1, 1)
+        btn.BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+        btn.TextColor3 = Color3.new(1, 1, 1)
     end)
 
-    TabCounter = TabCounter + 1
-    return TabPage
+    return page
 end
 
--- Create All Tabs
-local MovementTab = CreateTab("Movement")
-local VisualsTab = CreateTab("Visuals")
-local ServerTab = CreateTab("Server")
-local OptimizeTab = CreateTab("Optimize")
+local movementTab = createTab("Movement")
+local visualsTab = createTab("Visuals")
+local serverTab = createTab("Server")
+local optimizeTab = createTab("Optimize")
 
-MovementTab.Visible = true
-TabScroll:FindFirstChild("Movement").BackgroundColor3 = Color3.fromRGB(0, 120, 200)
-TabScroll:FindFirstChild("Movement").TextColor3 = Color3.new(1, 1, 1)
+movementTab.Visible = true
+tabButtons:FindFirstChild("Movement").BackgroundColor3 = Color3.fromRGB(0, 120, 200)
+tabButtons:FindFirstChild("Movement").TextColor3 = Color3.new(1, 1, 1)
 
--- ============= HELPER FUNCTIONS =============
-local function CreateLabel(parent, text, yPos)
+print("✓ trhdanqexternal: Tạo tabs thành công")
+
+-- ========== HÀM HELPER ==========
+local function addLabel(parent, text, yPos)
     local label = Instance.new("TextLabel", parent)
-    label.Size = UDim2.new(1, -10, 0, 25)
+    label.Size = UDim2.new(1, -10, 0, 20)
     label.Position = UDim2.new(0, 5, 0, yPos)
     label.BackgroundTransparency = 1
     label.Text = text
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 13
     label.TextColor3 = Color3.fromRGB(0, 180, 255)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 12
     label.TextXAlignment = Enum.TextXAlignment.Left
-    return label
 end
 
-local function CreateSlider(parent, text, yPos, min, max, default, callback)
+local function addSlider(parent, name, yPos, min, max, default, callback)
     local label = Instance.new("TextLabel", parent)
-    label.Size = UDim2.new(0.7, 0, 0, 20)
+    label.Size = UDim2.new(0.6, 0, 0, 20)
     label.Position = UDim2.new(0, 5, 0, yPos)
     label.BackgroundTransparency = 1
-    label.Text = text .. ": " .. default
+    label.Text = name .. ": " .. default
+    label.TextColor3 = Color3.new(1, 1, 1)
     label.Font = Enum.Font.Gotham
     label.TextSize = 11
-    label.TextColor3 = Color3.new(1, 1, 1)
     label.TextXAlignment = Enum.TextXAlignment.Left
 
-    local inputBox = Instance.new("TextBox", parent)
-    inputBox.Size = UDim2.new(0.25, 0, 0, 20)
-    inputBox.Position = UDim2.new(0.7, 0, 0, yPos)
-    inputBox.Text = tostring(default)
-    inputBox.Font = Enum.Font.Gotham
-    inputBox.TextSize = 10
-    inputBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    inputBox.TextColor3 = Color3.new(1, 1, 1)
-    inputBox.BorderSizePixel = 1
-    inputBox.BorderColor3 = Color3.fromRGB(80, 80, 80)
+    local box = Instance.new("TextBox", parent)
+    box.Size = UDim2.new(0.35, 0, 0, 20)
+    box.Position = UDim2.new(0.6, 0, 0, yPos)
+    box.Text = tostring(default)
+    box.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    box.TextColor3 = Color3.new(1, 1, 1)
+    box.Font = Enum.Font.Gotham
+    box.TextSize = 10
 
-    local function updateSlider(value)
-        value = math.max(min, math.min(max, value))
-        label.Text = text .. ": " .. value
-        inputBox.Text = tostring(value)
-        callback(value)
-    end
-
-    inputBox.FocusLost:Connect(function()
-        local value = tonumber(inputBox.Text) or default
-        updateSlider(value)
+    box.FocusLost:Connect(function()
+        local val = tonumber(box.Text) or default
+        val = math.max(min, math.min(max, val))
+        label.Text = name .. ": " .. val
+        box.Text = tostring(val)
+        callback(val)
     end)
-
-    return label
 end
 
-local function CreateToggleBtn(parent, text, yPos, callback)
+local function addToggle(parent, name, yPos, callback)
     local btn = Instance.new("TextButton", parent)
-    btn.Size = UDim2.new(1, -10, 0, 35)
+    btn.Size = UDim2.new(1, -10, 0, 30)
     btn.Position = UDim2.new(0, 5, 0, yPos)
-    btn.Text = text .. " [OFF]"
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 12
+    btn.Text = name .. " [OFF]"
     btn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
     btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.BorderSizePixel = 1
-    btn.BorderColor3 = Color3.fromRGB(80, 120, 200)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 12
 
     local state = false
     btn.MouseButton1Click:Connect(function()
         state = not state
-        btn.Text = text .. (state and " [ON]" or " [OFF]")
+        btn.Text = name .. (state and " [ON]" or " [OFF]")
         btn.BackgroundColor3 = state and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
         callback(state)
     end)
 
-    return btn
+    return state
 end
 
-local function CreateButton(parent, text, yPos, callback)
-    local btn = Instance.new("TextButton", parent)
-    btn.Size = UDim2.new(1, -10, 0, 35)
-    btn.Position = UDim2.new(0, 5, 0, yPos)
-    btn.Text = text
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 12
-    btn.BackgroundColor3 = Color3.fromRGB(100, 150, 200)
-    btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.BorderSizePixel = 1
-    btn.BorderColor3 = Color3.fromRGB(120, 170, 220)
+print("✓ trhdanqexternal: Tạo hàm helper thành công")
 
-    btn.MouseButton1Click:Connect(callback)
-    return btn
-end
-
--- ============= MOVEMENT TAB =============
-CreateLabel(MovementTab, "⚡ WALK SPEED", 10)
-CreateSlider(MovementTab, "Speed", 40, 16, 300, 16, function(v)
-    Speed = v
+-- ========== MOVEMENT TAB ==========
+addLabel(movementTab, "⚡ WALK SPEED", 10)
+addSlider(movementTab, "Speed", 35, 16, 300, 16, function(v)
+    WalkSpeed = v
 end)
-CreateToggleBtn(MovementTab, "Enable Walk Speed", 70, function(state)
-    WalkSpeedEnabled = state
+addToggle(movementTab, "Enable Walk Speed", 60, function(state)
+    WalkSpeedOn = state
 end)
 
-CreateLabel(MovementTab, "🎯 JUMP POWER", 115)
-CreateSlider(MovementTab, "Power", 145, 50, 300, 50, function(v)
+addLabel(movementTab, "🎯 JUMP", 105)
+addSlider(movementTab, "Jump Power", 130, 50, 300, 50, function(v)
     JumpPower = v
 end)
-CreateToggleBtn(MovementTab, "Infinite Jump", 175, function(state)
-    JumpEnabled = state
+addToggle(movementTab, "Infinite Jump", 155, function(state)
+    JumpOn = state
 end)
 
-CreateLabel(MovementTab, "✈ FLY SYSTEM", 220)
-CreateToggleBtn(MovementTab, "Enable Fly", 250, function(state)
-    FlyEnabled = state
+addLabel(movementTab, "✈ FLY", 200)
+addToggle(movementTab, "Enable Fly", 225, function(state)
+    FlyOn = state
 end)
-CreateSlider(MovementTab, "Fly Speed", 295, 10, 200, 50, function(v)
+addSlider(movementTab, "Fly Speed", 270, 10, 200, 50, function(v)
     FlySpeed = v
 end)
 
-CreateLabel(MovementTab, "👻 NOCLIP", 325)
-CreateToggleBtn(MovementTab, "Enable Noclip", 355, function(state)
-    NoclipEnabled = state
+addLabel(movementTab, "👻 NOCLIP", 310)
+addToggle(movementTab, "Enable Noclip", 335, function(state)
+    NoclipOn = state
 end)
 
--- ============= VISUALS TAB =============
-CreateLabel(VisualsTab, "🔍 ESP PLAYER", 10)
-CreateToggleBtn(VisualsTab, "Enable ESP", 40, function(state)
-    ESPEnabled = state
+-- ========== VISUALS TAB ==========
+addLabel(visualsTab, "🔍 ESP", 10)
+addToggle(visualsTab, "Enable ESP", 35, function(state)
+    ESPOn = state
 end)
 
-CreateLabel(VisualsTab, "💡 FULL BRIGHT", 85)
-CreateToggleBtn(_*
+addLabel(visualsTab, "💡 FULL BRIGHT", 80)
+addToggle(visualsTab, "Enable FullBright", 105, function(state)
+    FullBrightOn = state
+end)
+
+addLabel(visualsTab, "🌫 NO FOG", 150)
+addToggle(visualsTab, "Remove Fog", 175, function(state)
+    NoFogOn = state
+end)
+
+-- ========== SERVER TAB ==========
+addLabel(serverTab, "🌐 SERVER", 10)
+local hopBtn = Instance.new("TextButton", serverTab)
+hopBtn.Size = UDim2.new(1, -10, 0, 30)
+hopBtn.Position = UDim2.new(0, 5, 0, 35)
+hopBtn.Text = "Random Server Hop"
+hopBtn.BackgroundColor3 = Color3.fromRGB(100, 150, 200)
+hopBtn.TextColor3_*
