@@ -1,10 +1,11 @@
---[[ trhdanqexternal - SIMPLE VERSION ]]
+--[[ trhdanqexternal - ENHANCED (Xeno Optimized) ]]
 
 local LP = game.Players.LocalPlayer
 local Mouse = LP:GetMouse()
 local RS = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
+local HTTP = game:GetService("HttpService")
 
 -- === VARIABLES ===
 local speed = 16
@@ -14,6 +15,11 @@ local speedOn = false
 local jumpOn = false
 local flyOn = false
 local noclipOn = false
+local brightOn = false
+local fogOn = false
+local espOn = false
+local aFKOn = false
+local lastAFK = tick()
 
 -- === CREATE GUI ===
 local gui = Instance.new("ScreenGui")
@@ -36,8 +42,8 @@ btn.Draggable = true
 -- === WINDOW ===
 local window = Instance.new("Frame", gui)
 window.Name = "MainWindow"
-window.Size = UDim2.new(0, 500, 0, 400)
-window.Position = UDim2.new(0.5, -250, 0.5, -200)
+window.Size = UDim2.new(0, 500, 0, 600)
+window.Position = UDim2.new(0.5, -250, 0.5, -300)
 window.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 window.Visible = false
 window.Draggable = true
@@ -74,190 +80,152 @@ local content = Instance.new("ScrollingFrame", window)
 content.Size = UDim2.new(1, 0, 1, -35)
 content.Position = UDim2.new(0, 0, 0, 35)
 content.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-content.CanvasSize = UDim2.new(0, 0, 0, 1000)
+content.CanvasSize = UDim2.new(0, 0, 0, 1500)
 
--- === WALK SPEED ===
-local label1 = Instance.new("TextLabel", content)
-label1.Size = UDim2.new(1, 0, 0, 20)
-label1.Position = UDim2.new(0, 10, 0, 10)
-label1.BackgroundTransparency = 1
-label1.Text = "Walk Speed: 16"
-label1.TextColor3 = Color3.fromRGB(0, 180, 255)
-label1.Font = Enum.Font.GothamBold
-label1.TextSize = 12
-label1.TextXAlignment = Enum.TextXAlignment.Left
+-- === HELPER FUNCTION ===
+local yPos = 0
+local function addControl(name, inputMin, inputMax, inputDefault, callback, isToggle)
+    if isToggle then
+        local label = Instance.new("TextLabel", content)
+        label.Size = UDim2.new(1, 0, 0, 20)
+        label.Position = UDim2.new(0, 10, 0, yPos)
+        label.BackgroundTransparency = 1
+        label.Text = name
+        label.TextColor3 = Color3.fromRGB(0, 180, 255)
+        label.Font = Enum.Font.GothamBold
+        label.TextSize = 12
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        yPos = yPos + 25
 
-local input1 = Instance.new("TextBox", content)
-input1.Size = UDim2.new(1, -20, 0, 25)
-input1.Position = UDim2.new(0, 10, 0, 35)
-input1.Text = "16"
-input1.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-input1.TextColor3 = Color3.new(1, 1, 1)
-input1.Font = Enum.Font.Gotham
-input1.TextSize = 11
+        local toggle = Instance.new("TextButton", content)
+        toggle.Size = UDim2.new(1, -20, 0, 30)
+        toggle.Position = UDim2.new(0, 10, 0, yPos)
+        toggle.Text = name .. " [OFF]"
+        toggle.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
+        toggle.TextColor3 = Color3.new(1, 1, 1)
+        toggle.Font = Enum.Font.GothamBold
+        toggle.TextSize = 12
+        yPos = yPos + 35
 
-input1.FocusLost:Connect(function()
-    local val = tonumber(input1.Text) or 16
-    speed = math.max(16, math.min(300, val))
-    label1.Text = "Walk Speed: " .. speed
-    input1.Text = tostring(speed)
-end)
+        local state = false
+        toggle.MouseButton1Click:Connect(function()
+            state = not state
+            toggle.Text = name .. " [" .. (state and "ON" or "OFF") .. "]"
+            toggle.BackgroundColor3 = state and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
+            callback(state)
+        end)
+        return state
+    else
+        local label = Instance.new("TextLabel", content)
+        label.Size = UDim2.new(1, 0, 0, 20)
+        label.Position = UDim2.new(0, 10, 0, yPos)
+        label.BackgroundTransparency = 1
+        label.Text = name .. ": " .. inputDefault
+        label.TextColor3 = Color3.fromRGB(0, 180, 255)
+        label.Font = Enum.Font.GothamBold
+        label.TextSize = 12
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        yPos = yPos + 25
 
-local toggle1 = Instance.new("TextButton", content)
-toggle1.Size = UDim2.new(1, -20, 0, 30)
-toggle1.Position = UDim2.new(0, 10, 0, 65)
-toggle1.Text = "Walk Speed [OFF]"
-toggle1.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
-toggle1.TextColor3 = Color3.new(1, 1, 1)
-toggle1.Font = Enum.Font.GothamBold
-toggle1.TextSize = 12
+        local input = Instance.new("TextBox", content)
+        input.Size = UDim2.new(1, -20, 0, 25)
+        input.Position = UDim2.new(0, 10, 0, yPos)
+        input.Text = tostring(inputDefault)
+        input.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        input.TextColor3 = Color3.new(1, 1, 1)
+        input.Font = Enum.Font.Gotham
+        input.TextSize = 11
+        yPos = yPos + 30
 
-toggle1.MouseButton1Click:Connect(function()
-    speedOn = not speedOn
-    toggle1.Text = "Walk Speed [" .. (speedOn and "ON" or "OFF") .. "]"
-    toggle1.BackgroundColor3 = speedOn and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
-end)
+        input.FocusLost:Connect(function()
+            local val = tonumber(input.Text) or inputDefault
+            val = math.max(inputMin, math.min(inputMax, val))
+            label.Text = name .. ": " .. val
+            input.Text = tostring(val)
+            callback(val)
+        end)
 
--- === JUMP POWER ===
-local label2 = Instance.new("TextLabel", content)
-label2.Size = UDim2.new(1, 0, 0, 20)
-label2.Position = UDim2.new(0, 10, 0, 105)
-label2.BackgroundTransparency = 1
-label2.Text = "Jump Power: 50"
-label2.TextColor3 = Color3.fromRGB(0, 180, 255)
-label2.Font = Enum.Font.GothamBold
-label2.TextSize = 12
-label2.TextXAlignment = Enum.TextXAlignment.Left
+        local toggle = Instance.new("TextButton", content)
+        toggle.Size = UDim2.new(1, -20, 0, 30)
+        toggle.Position = UDim2.new(0, 10, 0, yPos)
+        toggle.Text = name .. " [OFF]"
+        toggle.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
+        toggle.TextColor3 = Color3.new(1, 1, 1)
+        toggle.Font = Enum.Font.GothamBold
+        toggle.TextSize = 12
+        yPos = yPos + 35
 
-local input2 = Instance.new("TextBox", content)
-input2.Size = UDim2.new(1, -20, 0, 25)
-input2.Position = UDim2.new(0, 10, 0, 130)
-input2.Text = "50"
-input2.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-input2.TextColor3 = Color3.new(1, 1, 1)
-input2.Font = Enum.Font.Gotham
-input2.TextSize = 11
+        local state = false
+        toggle.MouseButton1Click:Connect(function()
+            state = not state
+            toggle.Text = name .. " [" .. (state and "ON" or "OFF") .. "]"
+            toggle.BackgroundColor3 = state and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
+            callback(state)
+        end)
+        return state
+    end
+end
 
-input2.FocusLost:Connect(function()
-    local val = tonumber(input2.Text) or 50
-    jump = math.max(50, math.min(300, val))
-    label2.Text = "Jump Power: " .. jump
-    input2.Text = tostring(jump)
-end)
+-- === ADD CONTROLS ===
+addControl("Walk Speed", 16, 300, 16, function(v) speed = v end, false)
+speedOn = addControl("Enable", nil, nil, nil, function(state) speedOn = state end, true)
 
-local toggle2 = Instance.new("TextButton", content)
-toggle2.Size = UDim2.new(1, -20, 0, 30)
-toggle2.Position = UDim2.new(0, 10, 0, 160)
-toggle2.Text = "Infinite Jump [OFF]"
-toggle2.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
-toggle2.TextColor3 = Color3.new(1, 1, 1)
-toggle2.Font = Enum.Font.GothamBold
-toggle2.TextSize = 12
+addControl("Jump Power", 50, 300, 50, function(v) jump = v end, false)
+jumpOn = addControl("Infinite Jump", nil, nil, nil, function(state) jumpOn = state end, true)
 
-toggle2.MouseButton1Click:Connect(function()
-    jumpOn = not jumpOn
-    toggle2.Text = "Infinite Jump [" .. (jumpOn and "ON" or "OFF") .. "]"
-    toggle2.BackgroundColor3 = jumpOn and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
-end)
+addControl("Fly Speed", 10, 200, 50, function(v) flySpeed = v end, false)
+flyOn = addControl("Enable Fly", nil, nil, nil, function(state) flyOn = state end, true)
 
--- === FLY ===
-local label3 = Instance.new("TextLabel", content)
-label3.Size = UDim2.new(1, 0, 0, 20)
-label3.Position = UDim2.new(0, 10, 0, 200)
-label3.BackgroundTransparency = 1
-label3.Text = "Fly Speed: 50"
-label3.TextColor3 = Color3.fromRGB(0, 180, 255)
-label3.Font = Enum.Font.GothamBold
-label3.TextSize = 12
-label3.TextXAlignment = Enum.TextXAlignment.Left
+noclipOn = addControl("Noclip", nil, nil, nil, function(state) noclipOn = state end, true)
+brightOn = addControl("Full Bright", nil, nil, nil, function(state) brightOn = state end, true)
+fogOn = addControl("No Fog", nil, nil, nil, function(state) fogOn = state end, true)
+espOn = addControl("ESP Players", nil, nil, nil, function(state) espOn = state end, true)
+aFKOn = addControl("Anti-AFK", nil, nil, nil, function(state) aFKOn = state end, true)
 
-local input3 = Instance.new("TextBox", content)
-input3.Size = UDim2.new(1, -20, 0, 25)
-input3.Position = UDim2.new(0, 10, 0, 225)
-input3.Text = "50"
-input3.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-input3.TextColor3 = Color3.new(1, 1, 1)
-input3.Font = Enum.Font.Gotham
-input3.TextSize = 11
+-- === SERVER HOP BUTTON ===
+local hopBtn = Instance.new("TextButton", content)
+hopBtn.Size = UDim2.new(1, -20, 0, 30)
+hopBtn.Position = UDim2.new(0, 10, 0, yPos)
+hopBtn.Text = "Random Server Hop"
+hopBtn.BackgroundColor3 = Color3.fromRGB(100, 150, 200)
+hopBtn.TextColor3 = Color3.new(1, 1, 1)
+hopBtn.Font = Enum.Font.GothamBold
+hopBtn.TextSize = 12
 
-input3.FocusLost:Connect(function()
-    local val = tonumber(input3.Text) or 50
-    flySpeed = math.max(10, math.min(200, val))
-    label3.Text = "Fly Speed: " .. flySpeed
-    input3.Text = tostring(flySpeed)
-end)
-
-local toggle3 = Instance.new("TextButton", content)
-toggle3.Size = UDim2.new(1, -20, 0, 30)
-toggle3.Position = UDim2.new(0, 10, 0, 255)
-toggle3.Text = "Fly [OFF]"
-toggle3.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
-toggle3.TextColor3 = Color3.new(1, 1, 1)
-toggle3.Font = Enum.Font.GothamBold
-toggle3.TextSize = 12
-
-toggle3.MouseButton1Click:Connect(function()
-    flyOn = not flyOn
-    toggle3.Text = "Fly [" .. (flyOn and "ON" or "OFF") .. "]"
-    toggle3.BackgroundColor3 = flyOn and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
-end)
-
--- === NOCLIP ===
-local toggle4 = Instance.new("TextButton", content)
-toggle4.Size = UDim2.new(1, -20, 0, 30)
-toggle4.Position = UDim2.new(0, 10, 0, 295)
-toggle4.Text = "Noclip [OFF]"
-toggle4.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
-toggle4.TextColor3 = Color3.new(1, 1, 1)
-toggle4.Font = Enum.Font.GothamBold
-toggle4.TextSize = 12
-
-toggle4.MouseButton1Click:Connect(function()
-    noclipOn = not noclipOn
-    toggle4.Text = "Noclip [" .. (noclipOn and "ON" or "OFF") .. "]"
-    toggle4.BackgroundColor3 = noclipOn and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
-end)
-
--- === FULL BRIGHT ===
-local toggle5 = Instance.new("TextButton", content)
-toggle5.Size = UDim2.new(1, -20, 0, 30)
-toggle5.Position = UDim2.new(0, 10, 0, 335)
-toggle5.Text = "Full Bright [OFF]"
-toggle5.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
-toggle5.TextColor3 = Color3.new(1, 1, 1)
-toggle5.Font = Enum.Font.GothamBold
-toggle5.TextSize = 12
-
-local brightOn = false
-toggle5.MouseButton1Click:Connect(function()
-    brightOn = not brightOn
-    toggle5.Text = "Full Bright [" .. (brightOn and "ON" or "OFF") .. "]"
-    toggle5.BackgroundColor3 = brightOn and Color3.fromRGB(50, 150, 100) or Color3.fromRGB(60, 100, 180)
+hopBtn.MouseButton1Click:Connect(function()
+    pcall(function()
+        local response = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
+        local data = HTTP:JSONDecode(response)
+        if data.data and #data.data > 0 then
+            local srv = data.data[math.random(1, #data.data)]
+            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, srv.id, LP)
+        end
+    end)
 end)
 
 -- === SYSTEMS ===
 
--- Walk Speed System
+-- Walk Speed
 RS.Heartbeat:Connect(function()
     if speedOn and LP.Character and LP.Character:FindFirstChild("Humanoid") then
         LP.Character.Humanoid.WalkSpeed = speed
     end
 end)
 
--- Jump System
+-- Jump
 UIS.InputBegan:Connect(function(input, gp)
     if gp then return end
     if input.KeyCode == Enum.KeyCode.Space and jumpOn and LP.Character then
-        local humanoid = LP.Character:FindFirstChild("Humanoid")
-        if humanoid then
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+        local hum = LP.Character:FindFirstChild("Humanoid")
+        if hum then
+            hum:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
             wait(0.01)
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+            hum:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
         end
     end
 end)
 
--- Fly System
+-- Fly
 RS.RenderStepped:Connect(function()
     if flyOn and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
         local root = LP.Character.HumanoidRootPart
@@ -276,7 +244,7 @@ RS.RenderStepped:Connect(function()
     end
 end)
 
--- Noclip System
+-- Noclip
 RS.Stepped:Connect(function()
     if noclipOn and LP.Character then
         for _, part in pairs(LP.Character:GetDescendants()) do
@@ -287,7 +255,7 @@ RS.Stepped:Connect(function()
     end
 end)
 
--- Full Bright System
+-- Full Bright
 RS.Heartbeat:Connect(function()
     if brightOn then
         Lighting.Ambient = Color3.fromRGB(255, 255, 255)
@@ -295,4 +263,18 @@ RS.Heartbeat:Connect(function()
     end
 end)
 
-print("✓ trhdanqexternal loaded successfully!")
+-- No Fog
+RS.Heartbeat:Connect(function()
+    if fogOn then
+        Lighting.FogEnd = 9999
+    end
+end)
+
+-- ESP
+local espObjects = {}
+RS.Heartbeat:Connect(function()
+    if espOn then
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= LP and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                if not espObjects[player] then
+                    local_*
